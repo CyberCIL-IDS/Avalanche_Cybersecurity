@@ -118,14 +118,14 @@ Key evaluation metrics for CIL-IDS include:
 - **Average accuracy** across all tasks
 - **Forgetting measure (F)**
 
-\[
+Block formula:
+```math
 F = \frac{1}{T-1} \sum_{i=1}^{T-1} \max_{t < T} (A_{i,t} - A_{i,T})
-\]
+```
 
 where:
-
-- \( A_{i,t} \) = accuracy on task *i* after learning task *t*  
-- \( A_{i,T} \) = accuracy on task *i* after completing all *T* tasks
+- (A<sub>i,t</sub>) = accuracy on task *i* after learning task *t*
+- (A<sub>i,T</sub>) = accuracy on task *i* after completing all *T* tasks
 
 ### Detection Metrics
 For intrusion detection performance:
@@ -203,6 +203,95 @@ This workflow ensures the IDS evolves with new data while retaining its ability 
 
 ---
 
-📚 **Keywords:**  
-`Intrusion Detection` • `Incremental Learning` • `Catastrophic Forgetting` • `Replay` • `EWC` • `LwF` • `Evaluation`
+## 🧰 5. Tools & Frameworks
+
+To efficiently develop, train, and evaluate your CIL-IDS model, consider using the following frameworks and libraries:
+
+### 🔥 Core Machine Learning Framework
+
+- **[PyTorch](https://pytorch.org/)** – Open-source deep learning framework ideal for research and experimentation.  
+  📘 *Guide:* [PyTorch Tutorials](https://pytorch.org/tutorials/)  
+  - Supports dynamic computation graphs  
+  - Easily integrates with CIL libraries like Avalanche  
+  - Widely used for neural network models in cybersecurity and AI research
+
+---
+
+### 🧩 Incremental Learning Frameworks
+
+- **[Avalanche](https://avalanche.continualai.org/)** – A powerful library for **continual learning and CIL experiments**.  
+  📘 *Getting Started:* [Avalanche Tutorials](https://avalanche.continualai.org/getting-started/tutorials)  
+  - Built on top of PyTorch  
+  - Provides ready-to-use CIL strategies (EWC, LwF, Replay, etc.)  
+  - Offers standardized benchmarking and evaluation tools  
+
+---
+
+### 📊 Experiment Tracking & Visualization
+
+- **[Weights & Biases (wandb)](https://wandb.ai/)** – For tracking experiments, hyperparameters, and model performance visually.  
+  📘 *Guide:* [W&B Documentation](https://docs.wandb.ai/)
+
+- **[MLflow](https://mlflow.org/)** – Manage experiments, model versions, and results reproducibly.  
+  📘 *Guide:* [MLflow Quickstart](https://mlflow.org/docs/latest/quickstart.html)
+
+- **[TensorBoard](https://www.tensorflow.org/tensorboard)** – For plotting metrics and inspecting model performance visually.
+
+---
+
+### 🧮 Data Handling & Preprocessing
+
+- **[Pandas](https://pandas.pydata.org/)** – For data manipulation, feature engineering, and exploratory analysis.  
+- **[NumPy](https://numpy.org/)** – For efficient numerical computation.  
+- **[Scikit-learn](https://scikit-learn.org/stable/)** – For preprocessing (scaling, encoding, feature selection) and baseline models.  
+- **[Matplotlib](https://matplotlib.org/)** / **[Seaborn](https://seaborn.pydata.org/)** – For creating accuracy/forgetting plots and confusion matrices.
+
+---
+
+### ⚙️ Development & Environment
+
+- **[Google Colab](https://colab.research.google.com/)** – Free GPU environment for training small to medium models.  
+- **[Jupyter Notebooks](https://jupyter.org/)** – Interactive experimentation and visualization.  
+- **[VS Code](https://code.visualstudio.com/)** – IDE for managing modular codebases.  
+- **[Docker](https://www.docker.com/)** – For reproducible and portable environments.
+
+---
+
+### 🔒 Cybersecurity Datasets
+
+- **[CICIDS2017](https://www.unb.ca/cic/datasets/ids-2017.html)**  
+- **[UNSW-NB15](https://research.unsw.edu.au/projects/unsw-nb15-dataset)**  
+- **[NSL-KDD](https://www.unb.ca/cic/datasets/nsl.html)**  
+- **[TON_IoT](https://research.unsw.edu.au/projects/toniot-datasets)**  
+
+Use these datasets to simulate incremental attack scenarios.
+
+---
+
+## 📚 Keywords
+`Intrusion Detection` • `Class Incremental Learning` • `PyTorch` • `Avalanche` • `Catastrophic Forgetting` • `EWC` • `LwF` • `Replay` • `Experiment Tracking`
+
+---
+
+📧 **Authors:**
+
+<table>
+  <tr>
+    <td align="center">
+      <strong>Stefano Casini</strong><br>
+      MSc Software Engineering – University of Bologna<br>
+      <a href="mailto:stefano.casini2@studio.unibo.it">stefano.casini2@studio.unibo.it</a>
+    </td>
+    <td align="center">
+      <strong>Luigi Lauriola</strong><br>
+      MSc Software Engineering – University of Bologna<br>
+      <a href="mailto:luigi.lauriola2@studio.unibo.it">luigi.lauriola2@studio.unibo.it</a>
+    </td>
+    <td align="center">
+      <strong>Francesco Rondini</strong><br>
+      MSc Software Engineering – University of Bologna<br>
+      <a href="mailto:francesco.rondini@studio.unibo.it">francesco.rondini@studio.unibo.it</a>
+    </td>
+  </tr>
+</table>
 
