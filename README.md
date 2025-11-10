@@ -25,8 +25,6 @@ Each module is designed for flexibility, experimentation, and reproducibility.
 Select one or more benchmark IDS datasets suitable for incremental learning:
 - **CICIDS2017**
 - **UNSW-NB15**
-- **NSL-KDD**
-- **TON_IoT**
 
 The dataset must contain labeled attack classes to simulate the arrival of new threats.
 
