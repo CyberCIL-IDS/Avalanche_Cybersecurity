@@ -1,0 +1,15 @@
+dataset:
+  train_csv: "datasets/UNSW_NB15_training-set.csv"          #modificare con tutti i dataset
+  test_csv: "datasets/UNSW_NB15_testing-set.csv"
+
+preprocessing:
+  drop_columns: ["id", "label"]
+  categorical: ["proto", "service", "state"]
+  label_column: "attack_cat"
+  clip_percentile: 0.99
+  add_features: true
+  balance_classes: false   # puoi metterlo true
+
+output:
+  save_preprocessor: "artifacts/preprocessor.pkl"
+  save_label_encoder: "artifacts/label_encoder.pkl"
