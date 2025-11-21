@@ -31,17 +31,15 @@ def main():
     logging.info(f"Train shape: {train['X'].shape}, Test shape: {test['X'].shape}")
     logging.info("Dataset ready for training")
 
-    logging.info("=== TRAINING WITH REPLAY ===")
+    logging.info("=== TRAINING WITH __ ===")
     experiences, accuracy, forgetting = run_training(
         benchmark=benchmark,
         input_size=input_size,
         n_classes=n_classes
     )
 
-    logging.info("=== TRAINING WITH REPLAY ===")
-    experiences, accuracy, forgetting = run_training(
-        benchmark, input_size, n_classes
-    )
+    #TODO: catastrophic forgetting
+    
 
     logging.info("=== PLOTTING RESULTS ===")
     plot_metrics(experiences, accuracy, forgetting)
