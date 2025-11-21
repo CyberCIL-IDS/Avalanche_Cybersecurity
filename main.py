@@ -2,7 +2,7 @@ import logging
 import yaml
 from preprocessing.pipeline import prepare_dataset
 from utils.benchmark import create_benchmark
-from training import run_training
+from utils.training import run_training
 from utils.plotting import plot_metrics
 
 

@@ -1,18 +1,14 @@
 import torch
-from avalanche.training.strategies import Replay
+from avalanche.training import Replay
 from avalanche.training.plugins import EvaluationPlugin
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics
 from avalanche.logging import InteractiveLogger
 
-from model import NeuralNetwork       
+from models.neural_network import NeuralNetwork       
 from benchmark import get_benchmark   # benchmark già preprocessato e pronto
 
 
-def train():
-
-    # Carica il benchmark
-    benchmark = get_benchmark()
-
+def train(benchmark):
     # Istanzia il modello
     model = NeuralNetwork()
 
@@ -48,7 +44,3 @@ def train():
         strategy.eval(benchmark.test_stream)    #valuta il modello su tutte le esperienze viste e non viste - mostra metriche grazie all’InteractiveLogger
 
     print("\nTraining completato con Replay Strategy + NeuralNetwork.")
-
-
-if __name__ == "__main__":
-    train()
