@@ -17,8 +17,7 @@ def balance_samples(X, y):
     classes, counts = np.unique(y, return_counts=True)
     min_count = min(counts)
 
-    idx = np.hstack([np.random.choice(np.where(y == c)[0], min_count, replace=False)
-                     for c in classes])
+    idx = np.hstack([np.random.choice(np.where(y == c)[0], min_count, replace=False) for c in classes])
 
     return X[idx], y[idx]
 

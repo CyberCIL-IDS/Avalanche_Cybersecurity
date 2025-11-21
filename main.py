@@ -1,7 +1,7 @@
 import logging
 import yaml
 from preprocessing.pipeline import prepare_dataset
-from benchmark import create_benchmark
+from utils.benchmark import create_benchmark
 from training import run_training
 from utils.plotting import plot_metrics
 
@@ -21,9 +21,12 @@ def main():
     cfg = load_config()
 
     train, test, label_encoder = prepare_dataset(cfg) #preprocessor
+    
+    input_size = train["X"].shape[1]
+    n_classes = len(label_encoder.classes_)
 
     logging.info("=== CREATING BENCHMARK ===")
-    benchmark, input_size, n_classes = create_benchmark(train, test)
+    benchmark = create_benchmark(train, test)
 
     logging.info(f"Train shape: {train['X'].shape}, Test shape: {test['X'].shape}")
     logging.info("Dataset ready for training")
