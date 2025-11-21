@@ -1,16 +1,15 @@
 import torch
 from avalanche.training import Replay
 from avalanche.training.plugins import EvaluationPlugin
-from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics
+from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, forgetting_metrics
 from avalanche.logging import InteractiveLogger
 
-from models.neural_network import NeuralNetwork       
-from benchmark import get_benchmark   # benchmark già preprocessato e pronto
+from models.neural_network import NeuralNetwork         # benchmark già preprocessato e pronto
 
 
-def train(benchmark):
+def train(benchmark, input_size, n_classes):
     # Istanzia il modello
-    model = NeuralNetwork()
+    model = NeuralNetwork(input_size=input_size, num_classes=n_classes)
 
     # Imposta Algoritmo di ottimizzazione
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -19,6 +18,7 @@ def train(benchmark):
     eval_plugin = EvaluationPlugin(
         accuracy_metrics(epoch=True, experience=True, stream=True),
         loss_metrics(epoch=True, experience=True, stream=True),
+        forgetting_metrics(experience=True, stream=True),  # <-- Add forgetting metric
         loggers=[InteractiveLogger()]
     )
 
@@ -44,3 +44,6 @@ def train(benchmark):
         strategy.eval(benchmark.test_stream)    #valuta il modello su tutte le esperienze viste e non viste - mostra metriche grazie all’InteractiveLogger
 
     print("\nTraining completato con Replay Strategy + NeuralNetwork.")
+    
+    #experiences, accuracy, forgetting
+    return strategy.experience_count, eval_plugin.accuracy_metrics.get_all(), eval_plugin.forgetting_metrics.get_all()
