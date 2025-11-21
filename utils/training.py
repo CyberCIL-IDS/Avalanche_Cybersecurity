@@ -28,7 +28,7 @@ def train(benchmark, input_size, n_classes):
         optimizer = optimizer,
         criterion = torch.nn.CrossEntropyLoss(),    #funzione di loss: funzione che misura quanto il modello “sbaglia” durante il training.
         train_mb_size = 64,     # Dimensione batch training - numero di esempi per ogni passo di addestramento
-        train_epochs = 5,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
+        train_epochs = 1,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
         eval_mb_size = 64,      # Dimensione batch per valutazione - per ridurre uso memoria durante test
         evaluator = eval_plugin,
         device = "cuda" if torch.cuda.is_available() else "cpu",
@@ -45,5 +45,9 @@ def train(benchmark, input_size, n_classes):
 
     print("\nTraining completato con Replay Strategy + NeuralNetwork.")
     
-    #experiences, accuracy, forgetting
-    return strategy.experience_count, eval_plugin.accuracy_metrics.get_all(), eval_plugin.forgetting_metrics.get_all()
+
+    n_experiences = len(benchmark.train_stream)
+
+    metrics = eval_plugin.get_last_metrics()
+
+    return n_experiences, metrics#experiences, accuracy, forgettinreturn n_experiences, eval_plugin.accuracy_metrics.get_all(), eval_plugin.forgetting_metrics.get_all
