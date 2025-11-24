@@ -1,8 +1,10 @@
+import os
 import torch
 from avalanche.training import Replay, ICaRL, DER
 from avalanche.training.plugins import EvaluationPlugin
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, forgetting_metrics
 from avalanche.logging import InteractiveLogger
+from utils.checkpoint_custom_plugin import CheckpointPlugin
 
 from models.neural_network import NeuralNetwork         # benchmark già preprocessato e pronto
 
@@ -22,6 +24,15 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
         loggers=[InteractiveLogger()]
     )
 
+    checkpoint_plugin = CheckpointPlugin(folder="checkpoints")
+
+    # take existent checkpoints if any
+    if os.path.exists(f"checkpoints/model_checkpoint.pth"):
+        checkpoint = torch.load(f"checkpoints/model_checkpoint.pth")
+        model.load_state_dict(checkpoint["model_state"])
+        optimizer.load_state_dict(checkpoint["optimizer_state"])
+        print("Checkpoint loaded.")
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if strategy_type == "Replay":
         strategy = Replay(
@@ -33,7 +44,8 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
             eval_mb_size = 64,      # Dimensione batch per valutazione - per ridurre uso memoria durante test
             evaluator = eval_plugin,
             device = device,
-            mem_size = 2000   # buffer di replay
+            mem_size = 2000,   # buffer di replay
+            plugins=[checkpoint_plugin]
         )
     elif strategy_type == "ICaRL":
         strategy = ICaRL(
@@ -47,7 +59,9 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
             device=device,
             memory_size=2000,
             buffer_transform=None,     # nuovo
-            fixed_memory=True          # nuovo
+            fixed_memory=True,          # nuovo
+            plugins=[checkpoint_plugin]
+
         )
     elif strategy_type == "DER":
         strategy = DER(
@@ -60,7 +74,8 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
             evaluator=eval_plugin,
             device=device,
             mem_size=2000,   # <-- sostituisce buffer_size
-            alpha=0.3 # peso della loss sui dati del buffer rispetto a quelli correnti
+            alpha=0.3, # peso della loss sui dati del buffer rispetto a quelli correnti
+            plugins=[checkpoint_plugin]
         )
     else:
         print(f"Strategy {strategy_type} not recognized.")
