@@ -1,5 +1,5 @@
 import torch
-from avalanche.training import Replay
+from avalanche.training import Replay, ICaRL, DER
 from avalanche.training.plugins import EvaluationPlugin
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, forgetting_metrics
 from avalanche.logging import InteractiveLogger
@@ -7,7 +7,7 @@ from avalanche.logging import InteractiveLogger
 from models.neural_network import NeuralNetwork         # benchmark già preprocessato e pronto
 
 
-def train(benchmark, input_size, n_classes):
+def train(benchmark, input_size, n_classes, strategy_type="Replay"):
     # Istanzia il modello
     model = NeuralNetwork(input_size=input_size, num_classes=n_classes)
 
@@ -22,18 +22,49 @@ def train(benchmark, input_size, n_classes):
         loggers=[InteractiveLogger()]
     )
 
-    # Strategy Replay — continual learning
-    strategy = Replay(
-        model = model,
-        optimizer = optimizer,
-        criterion = torch.nn.CrossEntropyLoss(),    #funzione di loss: funzione che misura quanto il modello “sbaglia” durante il training.
-        train_mb_size = 64,     # Dimensione batch training - numero di esempi per ogni passo di addestramento
-        train_epochs = 1,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
-        eval_mb_size = 64,      # Dimensione batch per valutazione - per ridurre uso memoria durante test
-        evaluator = eval_plugin,
-        device = "cuda" if torch.cuda.is_available() else "cpu",
-        mem_size = 2000   # buffer di replay
-    )
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    if strategy_type == "Replay":
+        strategy = Replay(
+            model = model,
+            optimizer = optimizer,
+            criterion = torch.nn.CrossEntropyLoss(),    #funzione di loss: funzione che misura quanto il modello “sbaglia” durante il training.
+            train_mb_size = 64,     # Dimensione batch training - numero di esempi per ogni passo di addestramento
+            train_epochs = 1,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
+            eval_mb_size = 64,      # Dimensione batch per valutazione - per ridurre uso memoria durante test
+            evaluator = eval_plugin,
+            device = device,
+            mem_size = 2000   # buffer di replay
+        )
+    elif strategy_type == "ICaRL":
+        strategy = ICaRL(
+            feature_extractor = model.feature_extractor,
+            classifier = model.classifier,
+            optimizer = optimizer,
+            criterion = torch.nn.CrossEntropyLoss(),    #funzione di loss: funzione che misura quanto il modello “sbaglia” durante il training.
+            train_mb_size = 64,     # Dimensione batch training - numero di esempi per ogni passo di addestramento
+            train_epochs = 1,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
+            eval_mb_size = 64,      # Dimensione batch per valutazione - per ridurre uso memoria durante test
+            evaluator = eval_plugin,
+            device = device,
+            memory_size = 2000   # buffer di replay
+        )
+    elif strategy_type == "DER":
+        strategy = DER(
+            model = model,
+            optimizer = optimizer,
+            criterion = torch.nn.CrossEntropyLoss(),    #funzione di loss: funzione che misura quanto il modello “sbaglia” durante il training.
+            train_mb_size = 64,     # Dimensione batch training - numero di esempi per ogni passo di addestramento
+            train_epochs = 1,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
+            eval_mb_size = 64,      # Dimensione batch per valutazione - per ridurre uso memoria durante test
+            evaluator = eval_plugin,
+            device = device,
+            buffer_size = 2000,   # buffer di replay
+            alpha = 0.3   # peso della loss sui dati del buffer rispetto a quelli correnti
+        )
+    else:
+        print(f"Strategy {strategy_type} not recognized.")
+        SystemExit(1)
+    
 
     # Training sulle esperienze incrementali - Questo ciclo simula perfettamente il continual learning.
     for experience in benchmark.train_stream:       #Per ogni esperienza experience
