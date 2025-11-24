@@ -37,29 +37,30 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
         )
     elif strategy_type == "ICaRL":
         strategy = ICaRL(
-            feature_extractor = model.feature_extractor,
-            classifier = model.classifier,
-            optimizer = optimizer,
-            criterion = torch.nn.CrossEntropyLoss(),    #funzione di loss: funzione che misura quanto il modello “sbaglia” durante il training.
-            train_mb_size = 64,     # Dimensione batch training - numero di esempi per ogni passo di addestramento
-            train_epochs = 1,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
-            eval_mb_size = 64,      # Dimensione batch per valutazione - per ridurre uso memoria durante test
-            evaluator = eval_plugin,
-            device = device,
-            memory_size = 2000   # buffer di replay
+            feature_extractor=model.features_extractor,
+            classifier=model.classifier,
+            optimizer=optimizer,
+            train_mb_size=64,
+            train_epochs=1,
+            eval_mb_size=64,
+            evaluator=eval_plugin,
+            device=device,
+            memory_size=2000,
+            buffer_transform=None,     # nuovo
+            fixed_memory=True          # nuovo
         )
     elif strategy_type == "DER":
         strategy = DER(
-            model = model,
-            optimizer = optimizer,
-            criterion = torch.nn.CrossEntropyLoss(),    #funzione di loss: funzione che misura quanto il modello “sbaglia” durante il training.
-            train_mb_size = 64,     # Dimensione batch training - numero di esempi per ogni passo di addestramento
-            train_epochs = 1,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
-            eval_mb_size = 64,      # Dimensione batch per valutazione - per ridurre uso memoria durante test
-            evaluator = eval_plugin,
-            device = device,
-            buffer_size = 2000,   # buffer di replay
-            alpha = 0.3   # peso della loss sui dati del buffer rispetto a quelli correnti
+            model=model,
+            optimizer=optimizer,
+            criterion=torch.nn.CrossEntropyLoss(),
+            train_mb_size=64,
+            train_epochs=1,
+            eval_mb_size=64,
+            evaluator=eval_plugin,
+            device=device,
+            mem_size=2000,   # <-- sostituisce buffer_size
+            alpha=0.3 # peso della loss sui dati del buffer rispetto a quelli correnti
         )
     else:
         print(f"Strategy {strategy_type} not recognized.")

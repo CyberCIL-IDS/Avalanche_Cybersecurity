@@ -19,6 +19,7 @@ def load_config(path="config.yaml"):
 def main():
     # setup_logging()
     cfg = load_config()
+    strategy = cfg["strategy"]
 
     train_ds, test_ds, label_encoder = prepare_dataset(cfg) #preprocessor
     
@@ -35,12 +36,12 @@ def main():
     experiences, metrics = train(
         benchmark=benchmark,
         input_size=input_size,
-        n_classes=n_classes
+        n_classes=n_classes,
+        strategy_type=strategy
     )
 
-
-    #TODO: catastrophic forgetting
-
+    #TODO: checkpoint system
+    #TODO: come introdurre gli attacchi?
 
     acc_exp = []
     for i in range(experiences):
@@ -59,7 +60,7 @@ def main():
     exp_ids = list(range(1, experiences + 1))
 
     print("=== PLOTTING RESULTS ===")
-    plot_metrics(exp_ids, acc_exp, forget_exp)
+    plot_metrics(exp_ids, acc_exp, forget_exp, strategy)
 
 
 if __name__ == "__main__":

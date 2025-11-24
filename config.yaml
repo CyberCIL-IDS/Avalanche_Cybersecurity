@@ -2,6 +2,8 @@ dataset:
   train_csv: "datasets/UNSW_NB15_training-set.csv"          #modificare con tutti i dataset
   test_csv: "datasets/UNSW_NB15_testing-set.csv"
 
+strategy: "Replay"         #ICaRL, Replay, DER
+
 preprocessing:
   drop_columns: ["id", "label"]
   categorical: ["proto", "service", "state"]
