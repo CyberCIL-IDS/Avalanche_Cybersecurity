@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
-def plot_metrics(experiences, accuracy, forgetting, strategy, filename="utils/plot/metrics_plot_Replay.png"):
-    plt.figure(figsize=(8,5))
+def plot_metrics(experiences, accuracy, forgetting, strategy):
+    plt.figure(figsize=(8,10))
     plt.plot(experiences, accuracy, marker='o', label="Accuracy")
     plt.plot(experiences, forgetting, marker='x', label="Forgetting")
     plt.xlabel("Experience")
@@ -9,6 +9,8 @@ def plot_metrics(experiences, accuracy, forgetting, strategy, filename="utils/pl
     plt.title(f"Continual Learning Performance - {strategy}")
     plt.legend()
     plt.grid(True)
+
+    filename = f"utils/plot/metrics_plot_{strategy}.png"
     
     # salva immagine
     plt.savefig(filename)

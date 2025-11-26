@@ -1,5 +1,6 @@
 from avalanche.benchmarks import nc_benchmark
 from torch.utils.data import TensorDataset
+import torch
 
 def create_benchmark(train_ds, test_ds, split_type="single"):    
     train_dataset=TensorDataset(train_ds["X"], train_ds["y"])

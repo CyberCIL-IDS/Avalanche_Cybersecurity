@@ -32,7 +32,7 @@ def main():
     print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
     print("Dataset ready for training")
 
-    print("=== TRAINING WITH __ ===")
+    print("=== TRAINING ===")
     experiences, metrics = train(
         benchmark=benchmark,
         input_size=input_size,
@@ -40,7 +40,6 @@ def main():
         strategy_type=strategy
     )
 
-    #TODO: checkpoint system
     #TODO: come introdurre gli attacchi?
 
     acc_exp = []
