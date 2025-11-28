@@ -1,9 +1,10 @@
 import logging
-import yaml
 from preprocessing.pipeline import prepare_dataset
 from utils.benchmark import create_benchmark
 from utils.training import train
 from utils.plotting import plot_metrics
+from utils.config_loader import load_config
+import time
 
 
 # def setup_logging():
@@ -11,10 +12,6 @@ from utils.plotting import plot_metrics
 #         level=print,
 #         format="%(asctime)s [%(levelname)s] %(message)s"
 #     )
-
-def load_config(path="config.yaml"):
-    with open(path, "r") as f:
-        return yaml.safe_load(f)
 
 def main():
     # setup_logging()
@@ -32,8 +29,8 @@ def main():
     benchmark = create_benchmark(train_ds, test_ds, mode, param)
 
     print(f"Mode: {mode}, Param: {param}")
-    print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
-    print("Dataset ready for training")
+    #print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
+    #print("Dataset ready for training")
 
     print("=== TRAINING ===")
     experiences, metrics = train(
@@ -43,27 +40,8 @@ def main():
         strategy_type=strategy
     )
 
-    #TODO: come introdurre gli attacchi?
-
-    acc_exp = []
-    for i in range(experiences):
-        key = f"Top1_Acc_Exp/eval_phase/test_stream/Task000/Exp{i:03d}"
-        if key in metrics:
-            acc_exp.append(metrics[key])
-
-    # Forgetting per experience
-    forget_exp = [0.0]
-    for i in range(experiences):
-        key = f"ExperienceForgetting/eval_phase/test_stream/Task000/Exp{i:03d}"
-        if key in metrics:
-            forget_exp.append(metrics[key])
-
-
-    exp_ids = list(range(1, experiences + 1))
-
     print("=== PLOTTING RESULTS ===")
-    plot_metrics(exp_ids, acc_exp, forget_exp, strategy)
-    print(f"accuracy: {acc_exp} forgetting: {forget_exp} experiences: {exp_ids}")
+    plot_metrics(experiences, metrics, strategy, mode)
 
 
 if __name__ == "__main__":
