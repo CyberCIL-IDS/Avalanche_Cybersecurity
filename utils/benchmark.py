@@ -26,6 +26,7 @@ def create_benchmark(train_ds, test_ds, mode="single", param=None):
 
     unique_classes = torch.unique(train_ds["y"]).tolist()
     unique_classes.sort()
+    print("Unique classess:", unique_classes)
     n_classes = len(unique_classes)
     print(f"Total number of classes: {n_classes}")
 

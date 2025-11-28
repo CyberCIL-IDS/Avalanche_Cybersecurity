@@ -10,7 +10,7 @@ class CheckpointPlugin(BasePlugin):
 
     def after_training_exp(self, strategy, **kwargs):
         if self.save_every_exp:
-            path = f"{self.folder}/model_checkpoint.pth"
+            path = f"{self.folder}/model_checkpoint1.pth"
             torch.save({
                 "model_state": strategy.model.state_dict(),
                 "optimizer_state": strategy.optimizer.state_dict(),

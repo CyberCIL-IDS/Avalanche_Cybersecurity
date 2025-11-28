@@ -63,6 +63,7 @@ def main():
 
     print("=== PLOTTING RESULTS ===")
     plot_metrics(exp_ids, acc_exp, forget_exp, strategy)
+    print(f"accuracy: {acc_exp} forgetting: {forget_exp} experiences: {exp_ids}")
 
 
 if __name__ == "__main__":

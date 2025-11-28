@@ -3,10 +3,10 @@ dataset:
   test_csv: "datasets/UNSW_NB15_testing-set.csv"
 
 benchmark:
-  mode: "incremental"     # ["single", "fixed", "incremental"]
-  param: 2                    
+  mode: "incremental"     # ["fixed", "incremental"] 
+  param: 2         #single mode: fixed and param = 1 
 
-strategy: "Replay"         #ICaRL, Replay, DER
+strategy: "DER"         #ICaRL, Replay, DER
 
 preprocessing:
   drop_columns: ["id", "label"]
@@ -14,7 +14,7 @@ preprocessing:
   label_column: "attack_cat"
   clip_percentile: 0.99
   add_features: true
-  balance_classes: false   # puoi metterlo true
+  balance_classes: true   # puoi metterlo true
 
 output:
   save_preprocessor: "artifacts/preprocessor.pkl"

@@ -9,7 +9,7 @@ from utils.checkpoint_custom_plugin import CheckpointPlugin
 from models.neural_network import NeuralNetwork         # benchmark già preprocessato e pronto
 
 
-def train(benchmark, input_size, n_classes, strategy_type="Replay"):
+def train(benchmark, input_size, n_classes, strategy_type="Replay", use_checkpoint=False, train_epochs=5):
     # Istanzia il modello
     model = NeuralNetwork(input_size=input_size, num_classes=n_classes)
 
@@ -27,7 +27,7 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
     checkpoint_plugin = CheckpointPlugin(folder="checkpoints")
 
     # take existent checkpoints if any
-    if os.path.exists(f"checkpoints/model_checkpoint.pth"):
+    if os.path.exists(f"checkpoints/model_checkpoint.pth") and use_checkpoint == True:
         checkpoint = torch.load(f"checkpoints/model_checkpoint.pth")
         model.load_state_dict(checkpoint["model_state"])
         optimizer.load_state_dict(checkpoint["optimizer_state"])
@@ -40,11 +40,11 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
             optimizer = optimizer,
             criterion = torch.nn.CrossEntropyLoss(),    #funzione di loss: funzione che misura quanto il modello “sbaglia” durante il training.
             train_mb_size = 64,     # Dimensione batch training - numero di esempi per ogni passo di addestramento
-            train_epochs = 9,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
+            train_epochs = train_epochs,       # Epoche per esperienza - quante volte l’esperienza viene ripassata
             eval_mb_size = 64,      # Dimensione batch per valutazione - per ridurre uso memoria durante test
             evaluator = eval_plugin,
             device = device,
-            mem_size = 2000,   # buffer di replay
+            mem_size = 10000,   # buffer di replay
             plugins=[checkpoint_plugin]
         )
     elif strategy_type == "ICaRL":
@@ -53,7 +53,7 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
             classifier=model.classifier,
             optimizer=optimizer,
             train_mb_size=64,
-            train_epochs=1,
+            train_epochs=train_epochs,
             eval_mb_size=64,
             evaluator=eval_plugin,
             device=device,
@@ -61,7 +61,6 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
             buffer_transform=None,     # nuovo
             fixed_memory=True,          # nuovo
             plugins=[checkpoint_plugin]
-
         )
     elif strategy_type == "DER":
         strategy = DER(
@@ -69,7 +68,7 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
             optimizer=optimizer,
             criterion=torch.nn.CrossEntropyLoss(),
             train_mb_size=64,
-            train_epochs=1,
+            train_epochs=train_epochs,
             eval_mb_size=64,
             evaluator=eval_plugin,
             device=device,
@@ -90,11 +89,12 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
         print("\nEvaluation:")
         strategy.eval(benchmark.test_stream)    #valuta il modello su tutte le esperienze viste e non viste - mostra metriche grazie all’InteractiveLogger
 
-    print("\nTraining completato con Replay Strategy + NeuralNetwork.")
+    print(f"\nTraining completato con {strategy_type} Strategy + NeuralNetwork.")
     
 
     n_experiences = len(benchmark.train_stream)
     print(f"Number of experiences: {n_experiences}")
+    print(f"Total number of classes: {n_classes}")
 
     metrics = eval_plugin.get_last_metrics()
 
