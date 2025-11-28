@@ -94,6 +94,7 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay"):
     
 
     n_experiences = len(benchmark.train_stream)
+    print(f"Number of experiences: {n_experiences}")
 
     metrics = eval_plugin.get_last_metrics()
 

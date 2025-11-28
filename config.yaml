@@ -2,6 +2,10 @@ dataset:
   train_csv: "datasets/UNSW_NB15_training-set.csv"          #modificare con tutti i dataset
   test_csv: "datasets/UNSW_NB15_testing-set.csv"
 
+benchmark:
+  mode: "incremental"     # ["single", "fixed", "incremental"]
+  param: 2                    
+
 strategy: "Replay"         #ICaRL, Replay, DER
 
 preprocessing:

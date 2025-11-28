@@ -27,8 +27,11 @@ def main():
     n_classes = len(label_encoder.classes_)
 
     print("=== CREATING BENCHMARK ===")
-    benchmark = create_benchmark(train_ds, test_ds)
+    mode = cfg["benchmark"].get("mode", "single")
+    param = cfg["benchmark"].get("param", None)
+    benchmark = create_benchmark(train_ds, test_ds, mode, param)
 
+    print(f"Mode: {mode}, Param: {param}")
     print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
     print("Dataset ready for training")
 
