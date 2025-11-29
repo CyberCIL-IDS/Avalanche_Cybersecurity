@@ -9,7 +9,7 @@ from utils.checkpoint_custom_plugin import CheckpointPlugin
 from models.neural_network import NeuralNetwork         # benchmark già preprocessato e pronto
 
 
-def train(benchmark, input_size, n_classes, strategy_type="Replay", use_checkpoint=False, train_epochs=5):
+def train(benchmark, input_size, n_classes, mode, param, strategy_type="Replay", use_checkpoint=False, train_epochs=5):
     # Istanzia il modello
     model = NeuralNetwork(input_size=input_size, num_classes=n_classes)
 
@@ -24,7 +24,7 @@ def train(benchmark, input_size, n_classes, strategy_type="Replay", use_checkpoi
         loggers=[InteractiveLogger()]
     )
 
-    checkpoint_plugin = CheckpointPlugin(folder="checkpoints")
+    checkpoint_plugin = CheckpointPlugin(strategy_type, mode, param)
 
     # take existent checkpoints if any
     if os.path.exists(f"checkpoints/model_checkpoint.pth") and use_checkpoint == True:

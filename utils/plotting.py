@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-def plot_metrics(experiences, metrics, strategy, mode):
+def plot_metrics(experiences, metrics, strategy, mode, param):
     
     acc_exp = []
     for i in range(experiences):
@@ -28,7 +28,7 @@ def plot_metrics(experiences, metrics, strategy, mode):
     plt.legend()
     plt.grid(True)
 
-    filename = f"utils/plot/metrics_plot_{strategy}_{mode}.png"
+    filename = f"utils/plot/metrics_plot_{strategy}_{mode}_{param}.png"
     
     print(f"accuracy: {acc_exp} forgetting: {forget_exp} experiences: {exp_ids}")
     # salva immagine

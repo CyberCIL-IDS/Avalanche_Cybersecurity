@@ -18,6 +18,7 @@ def main():
     cfg = load_config()
     strategy = cfg["strategy"]
 
+
     train_ds, test_ds, label_encoder = prepare_dataset(cfg) #preprocessor
     
     input_size = train_ds["X"].shape[1]
@@ -37,11 +38,13 @@ def main():
         benchmark=benchmark,
         input_size=input_size,
         n_classes=n_classes,
-        strategy_type=strategy
+        strategy_type=strategy,
+        mode=mode,
+        param=param
     )
 
     print("=== PLOTTING RESULTS ===")
-    plot_metrics(experiences, metrics, strategy, mode)
+    plot_metrics(experiences, metrics, strategy, mode, param)
 
 
 if __name__ == "__main__":
