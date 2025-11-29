@@ -17,5 +17,5 @@ preprocessing:
   balance_classes: true   # puoi metterlo true
 
 output:
-  save_preprocessor: "artifacts/preprocessor.pkl"
-  save_label_encoder: "artifacts/label_encoder.pkl"
+  save_preprocessor: "models/preprocessor.pkl"
+  save_label_encoder: "models/label_encoder.pkl"

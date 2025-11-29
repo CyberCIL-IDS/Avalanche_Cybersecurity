@@ -3,6 +3,12 @@ import numpy as np
 def safe_ratio(a, b):
     return a / (b + 1)
 
+def clip_outliers(df, percentile):
+    for col in df.select_dtypes(include=[np.number]).columns:
+        upper = df[col].quantile(percentile)
+        df[col] = df[col].clip(upper=upper)
+    return df
+
 def add_unsw_features(df):
     df["pkt_ratio"] = safe_ratio(df["spkts"], df["dpkts"])
     df["byte_ratio"] = safe_ratio(df["sbytes"], df["dbytes"])

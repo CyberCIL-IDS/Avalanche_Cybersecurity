@@ -5,12 +5,8 @@ from preprocessing.loader import load_dataset
 from preprocessing.feature_engineering import add_unsw_features
 from preprocessing.encoder import build_preprocessor, save_object
 from sklearn.preprocessing import LabelEncoder
+from preprocessing.feature_engineering import clip_outliers
 
-def clip_outliers(df, percentile):
-    for col in df.select_dtypes(include=[np.number]).columns:
-        upper = df[col].quantile(percentile)
-        df[col] = df[col].clip(upper=upper)
-    return df
 
 def balance_samples(X, y):
     # semplice balance con undersampling
@@ -79,8 +75,8 @@ def prepare_dataset(cfg):
     y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
     # ---------- SALVATAGGIO ----------
-    # save_object(preprocessor, cfg["output"]["save_preprocessor"])
-    # save_object(label_encoder, cfg["output"]["save_label_encoder"])
+    save_object(preprocessor, cfg["output"]["save_preprocessor"])
+    save_object(label_encoder, cfg["output"]["save_label_encoder"])
 
     return (
         {"X": X_train_tensor, "y": y_train_tensor},
