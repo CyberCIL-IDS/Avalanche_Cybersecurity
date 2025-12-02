@@ -1,21 +1,28 @@
 import torch.nn as nn
 
 class NeuralNetwork(nn.Module):
-    def __init__(self, input_size, num_classes):
-        super().__init__()
-        #self.net #old version
-        self.features_extractor = nn.Sequential(
+    def __init__(self, input_size, num_classes, use_sigmoid=False):
+        super(NeuralNetwork, self).__init__()
+        
+        # Architettura Base
+        self.feature_extractor = nn.Sequential(
             nn.Linear(input_size, 512),
             nn.ReLU(),
             nn.Linear(512, 256),
-            nn.ReLU(),
-            #nn.Linear(256, num_classes)   #old version
+            nn.ReLU()
         )
 
-        self.classifier = nn.Linear(256, num_classes) #new version for ICaRL
+        # SE USI ICARL: Serve la Sigmoid
+        if use_sigmoid:
+            self.classifier = nn.Sequential(
+                nn.Linear(256, num_classes),
+                nn.Sigmoid() 
+            )
+        # SE USI REPLAY/DER: Basta il Linear
+        else:
+            self.classifier = nn.Linear(256, num_classes)
 
     def forward(self, x):
-        #return self.net(x) #old version
-        features = self.features_extractor(x) #new version for ICaRL
-        logits = self.classifier(features) #new version for ICaRL
-        return logits #new version for ICaRL
+        x = self.feature_extractor(x)
+        x = self.classifier(x)
+        return x

@@ -1,21 +1,52 @@
 import logging
 import numpy as np
 import torch
+from scipy import sparse
 from preprocessing.loader import load_dataset
 from preprocessing.feature_engineering import add_unsw_features
 from preprocessing.encoder import build_preprocessor, save_object
 from sklearn.preprocessing import LabelEncoder
 from preprocessing.feature_engineering import clip_outliers
 
+import numpy as np
+from scipy import sparse
+import torch
 
-def balance_samples(X, y):
-    # semplice balance con undersampling
+def balance_samples(X, y, target_count=1500):
+    """
+    Bilanciamento Ibrido:
+    - Le classi > target_count vengono tagliate (Undersampling)
+    - Le classi < target_count vengono duplicate (Oversampling)
+    """
     classes, counts = np.unique(y, return_counts=True)
-    min_count = min(counts)
+    print(f"DEBUG: Distribuzione originale: {dict(zip(classes, counts))}")
+    
+    X_balanced = []
+    y_balanced = []
 
-    idx = np.hstack([np.random.choice(np.where(y == c)[0], min_count, replace=False) for c in classes])
+    for c in classes:
+        idx = np.where(y == c)[0]
+        current_count = len(idx)
+        
+        if current_count > target_count:
+            random_idx = np.random.choice(idx, target_count, replace=False)
+        else:
+            random_idx = np.random.choice(idx, target_count, replace=True)
+            
+        X_balanced.append(X[random_idx])
+        y_balanced.append(y[random_idx])
 
-    return X[idx], y[idx]
+    # Ricostruzione dataset
+    if isinstance(X, np.ndarray) or isinstance(X, torch.Tensor):
+        X_final = np.vstack(X_balanced)
+        y_final = np.hstack(y_balanced)
+    else:
+        # Gestione matrici sparse
+        X_final = sparse.vstack(X_balanced)
+        y_final = np.hstack(y_balanced)
+
+    print(f"DEBUG: Dataset bilanciato a {target_count} campioni per classe.")
+    return X_final, y_final
 
 def prepare_dataset(cfg):
     # ---------- LOAD TRAIN ----------
@@ -63,7 +94,6 @@ def prepare_dataset(cfg):
     X_train = preprocessor.fit_transform(df_train.drop(columns=[label_col]))
     X_test  = preprocessor.transform(df_test.drop(columns=[label_col]))
 
-    # OPTIONAL: BALANCING
     if cfg["preprocessing"]["balance_classes"]:
         X_train, y_train = balance_samples(X_train, y_train)
 
@@ -81,6 +111,5 @@ def prepare_dataset(cfg):
     return (
         {"X": X_train_tensor, "y": y_train_tensor},
         {"X": X_test_tensor,  "y": y_test_tensor},
-        #preprocessor,
         label_encoder
     )

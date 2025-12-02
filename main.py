@@ -16,7 +16,7 @@ import time
 def main():
     # setup_logging()
     cfg = load_config()
-    strategy = cfg["strategy"]
+    strategy = cfg["benchmark"]["strategy"]
 
     train_ds, test_ds, label_encoder = prepare_dataset(cfg) #preprocessor
     
