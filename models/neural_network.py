@@ -6,21 +6,25 @@ class NeuralNetwork(nn.Module):
         
         # Architettura Base
         self.feature_extractor = nn.Sequential(
-            nn.Linear(input_size, 512),
+            nn.Linear(input_size, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 512),
             nn.ReLU(),
             nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
             nn.ReLU()
         )
 
         # SE USI ICARL: Serve la Sigmoid
         if use_sigmoid:
             self.classifier = nn.Sequential(
-                nn.Linear(256, num_classes),
+                nn.Linear(128, num_classes),
                 nn.Sigmoid() 
             )
         # SE USI REPLAY/DER: Basta il Linear
         else:
-            self.classifier = nn.Linear(256, num_classes)
+            self.classifier = nn.Linear(128, num_classes)
 
     def forward(self, x):
         x = self.feature_extractor(x)

@@ -4,7 +4,7 @@ dataset:
 
 benchmark:
   mode: "fixed"     # ["fixed", "incremental"] 
-  param: 2         #single mode: fixed and param = 1 
+  param: 1         #single mode: fixed and param = 1 
   strategy: "ICaRL"         #ICaRL, Replay, DER
 
 preprocessing:

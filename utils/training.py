@@ -8,6 +8,7 @@ from avalanche.logging import InteractiveLogger
 from torch.optim.lr_scheduler import MultiStepLR
 from utils.checkpoint_custom_plugin import CheckpointPlugin
 from models.neural_network import NeuralNetwork
+from utils.strategy import getStrategy
 
 def train(benchmark, input_size, n_classes, mode, param, strategy_type="Replay", use_checkpoint=False, train_epochs=15): 
     
@@ -52,40 +53,15 @@ def train(benchmark, input_size, n_classes, mode, param, strategy_type="Replay",
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Config: {strategy_type} | LR: {lr} | Epochs: {current_epochs} | Device: {device}")
 
-    if strategy_type == "Replay":
-        strategy = Replay(
-            model=model, optimizer=optimizer, criterion=torch.nn.CrossEntropyLoss(),
-            train_mb_size=64, train_epochs=current_epochs, eval_mb_size=64,
-            evaluator=eval_plugin, device=device, mem_size=10000,
-            plugins=plugins_list 
-        )
-
-    elif strategy_type == "ICaRL":
-        strategy = ICaRL(
-            feature_extractor=model.feature_extractor, 
-            classifier=model.classifier,
-            optimizer=optimizer,
-            train_mb_size=128,   
-            train_epochs=current_epochs, 
-            eval_mb_size=128,
-            evaluator=eval_plugin,
-            device=device,
-            memory_size=5000,    
-            buffer_transform=None,
-            fixed_memory=True,
-            plugins=plugins_list 
-        )
-
-    elif strategy_type == "DER":
-        strategy = DER(
-            model=model, optimizer=optimizer, criterion=torch.nn.CrossEntropyLoss(),
-            train_mb_size=64, train_epochs=current_epochs, eval_mb_size=64,
-            evaluator=eval_plugin, device=device, mem_size=5000, alpha=0.3,
-            plugins=plugins_list
-        )
-    else:
-        print(f"Strategy {strategy_type} not recognized.")
-        SystemExit(1)
+    strategy = getStrategy(
+        strategy_type=strategy_type,
+        model=model,
+        optimizer=optimizer,
+        current_epochs=current_epochs,
+        eval_plugin=eval_plugin,
+        device=device,
+        plugins_list=plugins_list
+    )
 
     # --- RESUME LOGIC (INVARIATA) ---
     chk_path = f"checkpoints/model_checkpoint_{strategy_type}_{mode}_{param}.pth"

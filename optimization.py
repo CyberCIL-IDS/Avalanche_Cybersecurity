@@ -1,12 +1,14 @@
-import logging
+from functools import partial
 from preprocessing.pipeline import prepare_dataset
-from utils import optuna_custom
 from utils.benchmark import create_benchmark
 from utils.optuna_custom import objective
 from utils.training import train
 from utils.plotting import plot_metrics
 from utils.config_loader import load_config
+import logging
 import time
+import torch
+import optuna
 
 
 # def setup_logging():
@@ -15,7 +17,7 @@ import time
 #         format="%(asctime)s [%(levelname)s] %(message)s"
 #     )
 
-def main():
+def hyperparameter_optimization():
     # setup_logging()
     cfg = load_config()
     strategy = cfg["benchmark"]["strategy"]
@@ -31,24 +33,26 @@ def main():
     benchmark = create_benchmark(train_ds, test_ds, mode, param)
 
     print(f"Mode: {mode}, Param: {param}")
-    #print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
-    #print("Dataset ready for training")
+    
 
-    print("=== TRAINING ===")
-    experiences, metrics = train(
-        benchmark=benchmark,
-        input_size=input_size,
-        n_classes=n_classes,
-        strategy_type=strategy,
-        mode=mode,
-        param=param,
+    print("=== OPTUNA ===")
+    study = optuna.create_study(direction="maximize")
+    study.optimize(
+        partial(
+            objective,
+            device="cuda" if torch.cuda.is_available() else "cpu",
+            strategy_type=strategy,
+            input_size=input_size,
+            n_classes=n_classes,
+            use_sigmoid_activation=True if strategy == "ICaRL" else False,
+            benchmark=benchmark
+        )
     )
 
-    print("=== PLOTTING RESULTS ===")
-    plot_metrics(experiences, metrics, strategy, mode, param)
+    print("BEST PARAMS:", study.best_params)
+    print("BEST VALUE:", study.best_value)
 
-    
 
 
 if __name__ == "__main__":
-    main()
+    hyperparameter_optimization()
