@@ -1,7 +1,5 @@
 import os
 import torch
-import torch.nn as nn
-from avalanche.training import Replay, ICaRL, DER
 from avalanche.training.plugins import EvaluationPlugin, LRSchedulerPlugin
 from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics, forgetting_metrics
 from avalanche.logging import InteractiveLogger
@@ -21,10 +19,16 @@ def train(benchmark, input_size, n_classes, mode, param, strategy_type="Replay",
         current_epochs = 100 if train_epochs < 50 else train_epochs
         lr = 2.0
         milestones = [int(current_epochs * 0.6), int(current_epochs * 0.8)]
+    elif strategy_type == "MER":
+        # NOTA: MER è computazionalmente molto più pesante di Replay.
+        # Spesso bastano meno epoche perché fa "n_inner_steps" per ogni batch.
+        current_epochs = 5 if train_epochs == 15 else train_epochs 
+        lr = 0.01 # MER lavora bene con LR standard o leggermente aggressivi (0.05 - 0.1)
+        milestones = [2, 4] # Scheduler accorciato
     else:
-        # Replay e DER richiedono LR standard e meno epoche
+        # Configurazione standard per DER o altri
         current_epochs = 15
-        lr = 0.01  # Valore sicuro per Replay
+        lr = 0.01
         milestones = [10, 13]
 
     # Optimizer

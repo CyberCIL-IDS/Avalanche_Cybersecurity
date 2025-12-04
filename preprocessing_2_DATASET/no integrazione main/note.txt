@@ -1,2 +1,0 @@
-NON genero nuovi .csv.
-Genero SOLO 2 file .PKL (il preprocessor e il label encoder).

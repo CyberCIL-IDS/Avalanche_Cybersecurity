@@ -1,11 +1,14 @@
 dataset:
-  train_csv: "datasets/UNSW_NB15_training-set.csv"          #modificare con tutti i dataset
-  test_csv: "datasets/UNSW_NB15_testing-set.csv"
+  train_csv: "datasets/UNSW_NB15/UNSW_NB15_training-set.csv"          #modificare con tutti i dataset
+  test_csv: "datasets/UNSW_NB15/UNSW_NB15_testing-set.csv"
 
 benchmark:
   mode: "fixed"     # ["fixed", "incremental"] 
   param: 1         #single mode: fixed and param = 1 
-  strategy: "ICaRL"         #ICaRL, Replay, DER
+  strategy: "MER"         #ICaRL, MER, DER
+
+dataset:
+  mode: "CICIDS_2017"   #CICIDS_2017, UNSW_NB15
 
 preprocessing:
   drop_columns: ["id", "label"]
@@ -18,3 +21,4 @@ preprocessing:
 output:
   save_preprocessor: "models/preprocessor.pkl"
   save_label_encoder: "models/label_encoder.pkl"
+
