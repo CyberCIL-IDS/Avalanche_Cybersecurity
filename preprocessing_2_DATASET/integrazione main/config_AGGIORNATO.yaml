@@ -1,0 +1,28 @@
+dataset:
+  train_csv: "datasets/UNSW_NB15_training-set.csv"          #modificare con tutti i dataset
+  test_csv: "datasets/UNSW_NB15_testing-set.csv"
+
+benchmark:
+  mode: "fixed"     # ["fixed", "incremental"] 
+  param: 1         #single mode: fixed and param = 1 
+  strategy: "ICaRL"         #ICaRL, Replay, DER
+
+preprocessing:
+  drop_columns: ["id", "label"]
+  categorical: ["proto", "service", "state"]
+  label_column: "attack_cat"
+  clip_percentile: 0.99
+  add_features: true
+  balance_classes: true
+
+output:
+  save_preprocessor: "models/preprocessor.pkl"
+  save_label_encoder: "models/label_encoder.pkl"
+
+# Nuovo preprocessing con il nuovo datasets
+preprocessing:
+  enabled: true
+  input_dir: "datasets_2"
+  output_dir: "datasets_2/processed"
+  num_train: 4      # 4 file per training
+  num_test: 4       # 4 file per test
