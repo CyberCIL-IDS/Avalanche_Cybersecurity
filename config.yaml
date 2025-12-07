@@ -1,14 +1,12 @@
 dataset:
-  train_csv: "datasets/UNSW_NB15/UNSW_NB15_training-set.csv"          #modificare con tutti i dataset
+  mode: "CICIDS_2017"   #CICIDS_2017, UNSW_NB15
+  train_csv: "datasets/UNSW_NB15/UNSW_NB15_training-set.csv"          
   test_csv: "datasets/UNSW_NB15/UNSW_NB15_testing-set.csv"
 
 benchmark:
   mode: "fixed"     # ["fixed", "incremental"] 
-  param: 1         #single mode: fixed and param = 1 
-  strategy: "MER"         #ICaRL, MER, DER
-
-dataset:
-  mode: "CICIDS_2017"   #CICIDS_2017, UNSW_NB15
+  param: 2         #single mode: fixed and param = 1 
+  strategy: "DER"         #ICaRL, MER, DER
 
 preprocessing:
   drop_columns: ["id", "label"]
@@ -22,3 +20,5 @@ output:
   save_preprocessor: "models/preprocessor.pkl"
   save_label_encoder: "models/label_encoder.pkl"
 
+#rimuovere checkpoint 
+#sistemare optuna

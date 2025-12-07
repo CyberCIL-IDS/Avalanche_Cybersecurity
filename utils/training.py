@@ -8,7 +8,7 @@ from utils.checkpoint_custom_plugin import CheckpointPlugin
 from models.neural_network import NeuralNetwork
 from utils.strategy import getStrategy
 
-def train(benchmark, input_size, n_classes, mode, param, strategy_type="Replay", use_checkpoint=False, train_epochs=15): 
+def train(benchmark, input_size, n_classes, mode, param, strategy_type="Replay", use_checkpoint=False, train_epochs=15, momentum=0.9, weight_decay=1e-4): 
     
     use_sigmoid_activation = (strategy_type == "ICaRL")
     model = NeuralNetwork(input_size, n_classes, use_sigmoid=use_sigmoid_activation)
@@ -27,16 +27,18 @@ def train(benchmark, input_size, n_classes, mode, param, strategy_type="Replay",
         milestones = [2, 4] # Scheduler accorciato
     else:
         # Configurazione standard per DER o altri
-        current_epochs = 15
+        current_epochs = 5
         lr = 0.01
         milestones = [10, 13]
+        momentum = 0.0
+        weight_decay = 1e-3
 
     # Optimizer
     optimizer = torch.optim.SGD(
         model.parameters(), 
         lr=lr,            
-        momentum=0.9, 
-        weight_decay=1e-4      
+        momentum=momentum, 
+        weight_decay=weight_decay      
     )
 
     # Scheduler allineato alle epoche correnti
