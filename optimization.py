@@ -55,7 +55,8 @@ def hyperparameter_optimization():
             n_classes=n_classes,
             use_sigmoid_activation=True if strategy == "ICaRL" else False,
             benchmark=benchmark
-        )
+        ),
+        n_trials=20
     )
 
     print("BEST PARAMS:", study.best_params)

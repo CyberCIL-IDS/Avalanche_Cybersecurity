@@ -8,11 +8,11 @@ class NeuralNetworkOptuna(nn.Module):
         input_size,
         num_classes,
         use_sigmoid=False,
-        h1=1024,
-        h2=512,
-        h3=256,
-        h4=128,
-        dropout=0.0
+        h1=510,
+        h2=463,
+        h3=166,
+        h4=255,
+        dropout=0.004661955943303167
     ):
         super().__init__()
 

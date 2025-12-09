@@ -19,6 +19,3 @@ preprocessing:
 output:
   save_preprocessor: "preprocessing/UNSW_NB15/preprocessor_UNSW_NB15.pkl"
   save_label_encoder: "preprocessing/UNSW_NB15/label_encoder_UNSW_NB15.pkl"
-
-#rimuovere checkpoint 
-#sistemare optuna

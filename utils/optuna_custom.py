@@ -91,7 +91,7 @@ def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_a
         
         current_acc_list = []
         for k in range(i + 1): # Check all previous tasks
-            key = f"Top1_Acc_Exp/eval_phase/test_stream/Task000/Exp{k}"
+            key = f"Top1_Acc_Exp/eval_phase/test_stream/Task000/Exp{k:03d}"
             val = results.get(key)
             if val is not None:
                 current_acc_list.append(val)

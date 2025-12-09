@@ -8,7 +8,7 @@ def getStrategy(strategy_type, model, optimizer, current_epochs, eval_plugin, de
     if strategy_type == "MER":
         #batch_size = 64
         if batch_size == -1:
-            batch_size = 64
+            batch_size = 128
         
         if strategy_type == "MER":
             strategy = MER(
@@ -50,7 +50,7 @@ def getStrategy(strategy_type, model, optimizer, current_epochs, eval_plugin, de
     elif strategy_type == "DER":
         #batch_size = 64
         if batch_size == -1:
-            batch_size = 64
+            batch_size = 32
         
         strategy = DER(
             model=model,
