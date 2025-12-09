@@ -24,7 +24,7 @@ def preprocessing_CICIDS():
         categorical,
         label_col,
         clip_p,
-        "saved_preprocessor.pkl",
-        "saved_label_encoder.pkl"
+        "preprocessing/CICIDS_2017/saved_preprocessor_UNSW_NB15.pkl",
+        "preprocessing/CICIDS_2017/label_encoder_UNSW_NB15.pkl"
     )
     return train_data, test_data, label_encoder
