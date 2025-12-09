@@ -1,5 +1,6 @@
 from functools import partial
-from preprocessing.pipeline import prepare_dataset
+from preprocessing.UNSW_NB15.preprocessing_UNSW_NB15 import prepare_UNSW_NB15
+from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CICIDS
 from utils.benchmark import create_benchmark
 from utils.optuna_custom import objective
 from utils.training import train
@@ -22,8 +23,16 @@ def hyperparameter_optimization():
     cfg = load_config()
     strategy = cfg["benchmark"]["strategy"]
 
-    train_ds, test_ds, label_encoder = prepare_dataset(cfg) #preprocessor
+    dataset = cfg["dataset"]["mode"]
     
+    print(f"=== DATASET SELECTED: {dataset} ===")
+
+
+    if dataset == "UNSW_NB15":
+        train_ds, test_ds, label_encoder = prepare_UNSW_NB15(cfg)
+    else:
+        train_ds, test_ds, label_encoder = preprocessing_CICIDS()
+
     input_size = train_ds["X"].shape[1]
     n_classes = len(label_encoder.classes_)
 
