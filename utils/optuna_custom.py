@@ -7,7 +7,7 @@ from torch.optim.lr_scheduler import MultiStepLR
 from models.neural_network_optuna import NeuralNetworkOptuna
 from utils.strategy import getStrategy
 import torch
-import sys
+import os
 
 def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_activation, benchmark, train_epochs=15):
 
