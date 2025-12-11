@@ -4,7 +4,7 @@ from avalanche.evaluation.metrics import accuracy_metrics
 from avalanche.logging import TextLogger 
 from avalanche.training.plugins import EvaluationPlugin, LRSchedulerPlugin
 from torch.optim.lr_scheduler import MultiStepLR
-from models.neural_network_optuna import NeuralNetworkOptuna
+from models.neural_network import NeuralNetwork
 from utils.strategy import getStrategy
 import torch
 import os
@@ -39,7 +39,7 @@ def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_a
         milestones = [10, 13]
 
     # ---- 3. MODEL SETUP ----
-    model = NeuralNetworkOptuna(
+    model = NeuralNetwork(
         input_size=input_size, 
         num_classes=n_classes, 
         use_sigmoid=use_sigmoid_activation, 

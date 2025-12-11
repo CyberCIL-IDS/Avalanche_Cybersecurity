@@ -7,6 +7,7 @@ from utils.training import train
 from utils.plotting import plot_metrics
 from utils.config_loader import load_config
 import time
+from utils.parsing_best_params import parse_json
 from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CICIDS
 
 
@@ -42,6 +43,31 @@ def main():
     print(f"Mode: {mode}, Param: {param}")
     #print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
     #print("Dataset ready for training")
+    
+    all_results = parse_json("output_all_p1.json") 
+    
+    # Cerca quelli specifici per la configurazione attuale
+    best_params = None
+    
+    for entry in all_results:
+        meta = entry["meta"]
+        # Confronto: verifica che strategia, modalità e param coincidano
+        if (meta["strategy"] == strategy and 
+            meta["mode"] == mode and 
+            meta["param"] == param):
+            
+            # Trovato! Prendi il dizionario dei parametri
+            best_params = entry["best_hyperparameters"]
+            print(f">>> Parametri ottimali trovati: {best_params}")
+            break
+            
+    # Se non li trova, solleva un errore (così non passi None o liste vuote a train)
+    if best_params is None:
+        raise ValueError(
+            f"ERRORE CRITICO: Non sono stati trovati parametri nel JSON per la configurazione:\n"
+            f"Strategy: {strategy}, Mode: {mode}, Param: {param}.\n"
+            "Verifica che 'output_all_p1.json' contenga questa combinazione."
+        )
 
     print("=== TRAINING ===")
     experiences, metrics = train(
@@ -51,6 +77,7 @@ def main():
         strategy_type=strategy,
         mode=mode,
         param=param,
+        model_params=best_params
     )
 
     print("=== PLOTTING RESULTS ===")

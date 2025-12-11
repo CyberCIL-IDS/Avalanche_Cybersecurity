@@ -4,7 +4,7 @@ from avalanche.evaluation.metrics import accuracy_metrics, loss_metrics
 from avalanche.logging import InteractiveLogger
 from avalanche.training.plugins import EvaluationPlugin, LRSchedulerPlugin
 from torch.optim.lr_scheduler import MultiStepLR
-from models.neural_network_optuna import NeuralNetworkOptuna
+from models.neural_network import NeuralNetwork
 from utils.strategy import getStrategy
 import torch
 
@@ -33,7 +33,7 @@ def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_a
     batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
 
     # ---- MODEL ----
-    model = NeuralNetworkOptuna(
+    model = NeuralNetwork(
         input_size=input_size, 
         num_classes=n_classes, 
         use_sigmoid=use_sigmoid_activation, 

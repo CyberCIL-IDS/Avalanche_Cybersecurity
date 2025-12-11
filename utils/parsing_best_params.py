@@ -2,43 +2,29 @@ import json
 import logging
 import os
 
-try:
-    from preprocessing.UNSW_NB15.preprocessing_UNSW_NB15 import prepare_UNSW_NB15
-    from utils import optuna_custom
-    from utils.benchmark import create_benchmark
-    from utils.optuna_custom import objective
-    from utils.training import train
-    from utils.plotting import plot_metrics
-    from utils.config_loader import load_config
-    from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CICIDS
-except ImportError as e:
-    print(f"[WARNING] Some custom libraries were not found (error: {e}). "
-          "The script will still proceed with parsing the JSON.")
-
-# Basic logging configuration
+# Configurazione base del logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def parse_json(path="output_all_p1.json"):
     """
-    It uploads a JSON file containing the optimization results and returns
-    an organized structure with the best parameters for each configuration. 
+    Carica un file JSON contenente i risultati dell'ottimizzazione e restituisce
+    una struttura organizzata con i migliori parametri per ogni configurazione.
     """
     
-    variabili = []
+    parsed_results = []
 
-    # 1. Open the file from the path
+    # 1. Verifica esistenza file
     if not os.path.exists(path):
-        logging.error(f"The file was not found at the path: {path}")
+        logging.error(f"Il file non è stato trovato al percorso: {path}")
         return []
 
     try:
         with open(path, 'r') as file:
             data = json.load(file)
-            logging.info(f"File '{path}' uploaded successfully. Find {len(data)} entry.")
+            logging.info(f"File '{path}' caricato con successo. Trovate {len(data)} entry.")
 
-        # 2. Parsing variables
+        # 2. Parsing delle variabili
         for entry in data:
-            # Extracting the context (strategy, modality, etc.)
             meta_info = {
                 "mode": entry.get("mode"),
                 "param": entry.get("param"),
@@ -46,37 +32,34 @@ def parse_json(path="output_all_p1.json"):
                 "trial": entry.get("trial")
             }
             
-            # Extracting the params (lr, hidden layers, ecc.)
-            b_value = entry.get("best_value", {})
-            
-            # Extracting the score
-            b_params = entry.get("best_params")
+            hyperparameters = entry.get("best_value", {})  
+            score = entry.get("best_params")              
 
-            # Creating a structured object
+            # Creazione oggetto strutturato
             parsed_item = {
                 "meta": meta_info,
-                "value": b_value,
-                "params": b_params
+                "best_hyperparameters": hyperparameters, 
+                "best_score": score                      
             }
-            variabili.append(parsed_item)
+            parsed_results.append(parsed_item)
 
-        # 3. Print variables
-        print("\n--- PARSATE VARIABLES ---")
-        for v in variabili:
+        # 3. Stampa risultati
+        print("\n--- RISULTATI ESTRATTI ---")
+        for v in parsed_results:
             strat = v['meta']['strategy']
             mode = v['meta']['mode']
-            p_id = v['meta']['param']
-            print(f"BEST VALUE: {v['value']}")
-            print(f"BEST PARAMS: {v['params']}\n")
+            param = v['meta']['param']
+            
+            print(f"CONFIG: {strat} | Mode: {mode} | Param: {param}")
+            print(f"SCORE:  {v['best_score']}")
+            print(f"PARAMS: {v['best_hyperparameters']}")
+            print("-" * 50)
 
-        return variabili
+        return parsed_results
 
     except json.JSONDecodeError:
-        logging.error(f"Error decoding JSON file: {path}")
+        logging.error(f"Errore nella decodifica del file JSON: {path}")
         return []
     except Exception as e:
-        logging.error(f"Unexpected error while parsing: {e}")
+        logging.error(f"Errore inaspettato durante il parsing: {e}")
         return []
-
-if __name__ == "__main__":
-    parse_json()
