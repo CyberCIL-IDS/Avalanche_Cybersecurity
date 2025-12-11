@@ -1,4 +1,6 @@
 from functools import partial
+import json
+import sys
 from preprocessing.UNSW_NB15.preprocessing_UNSW_NB15 import prepare_UNSW_NB15
 from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CICIDS
 from utils.benchmark import create_benchmark
@@ -10,6 +12,9 @@ import logging
 import time
 import torch
 import optuna
+import itertools
+import argparse
+import warnings
 
 
 # def setup_logging():
@@ -18,32 +23,20 @@ import optuna
 #         format="%(asctime)s [%(levelname)s] %(message)s"
 #     )
 
-def hyperparameter_optimization():
-    # setup_logging()
-    cfg = load_config()
-    strategy = cfg["benchmark"]["strategy"]
-
-    dataset = cfg["dataset"]["mode"]
-    
-    print(f"=== DATASET SELECTED: {dataset} ===")
-
-
-    if dataset == "UNSW_NB15":
-        train_ds, test_ds, label_encoder = prepare_UNSW_NB15(cfg)
-    else:
-        train_ds, test_ds, label_encoder = preprocessing_CICIDS()
-
-    input_size = train_ds["X"].shape[1]
-    n_classes = len(label_encoder.classes_)
-
+def save_results_to_file(data_list, output_path):
+    #Write on file
+    try:
+        with open(output_path, 'w') as output_file:
+            json.dump(data_list, output_file, indent=4)
+        print(f"\n[Saved] Results ({len(data_list)} entries) saved to: {output_path}")
+    except Exception as e:
+        print(f"\n[Error] Could not save file: {e}")
+def hyperparameter_optimization(strategy, mode, param, train_ds, test_ds, input_size, n_classes, n_trials):
     print("=== CREATING BENCHMARK ===")
-    mode = cfg["benchmark"].get("mode", "single")
-    param = cfg["benchmark"].get("param", None)
     benchmark = create_benchmark(train_ds, test_ds, mode, param)
 
     print(f"Mode: {mode}, Param: {param}")
     
-
     print("=== OPTUNA ===")
     study = optuna.create_study(direction="maximize")
     study.optimize(
@@ -56,13 +49,86 @@ def hyperparameter_optimization():
             use_sigmoid_activation=True if strategy == "ICaRL" else False,
             benchmark=benchmark
         ),
-        n_trials=20
+        n_trials=n_trials
     )
 
-    print("BEST PARAMS:", study.best_params)
-    print("BEST VALUE:", study.best_value)
+    best_params = study.best_params
+    best_value = study.best_value
+    trial = study.best_trial.number
 
+    print(f"Optuna[{mode}, {param}, {strategy}] -> trial={trial}, best_value={best_value}, best_params={best_params}")
+    return trial, best_params, best_value
 
+def optimization():
+    #Ignore all DeprecationWarnings, specifically ignore warnings from avalanche if you want to be safer
+    warnings.filterwarnings("ignore", module="avalanche")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("output_path", default=None, help="Path to save results")
+    args = parser.parse_args()
+
+    cfg = load_config()
+    strategies, modes, params = [],[],[]
+    modes_best_params_list = []
+
+    output_path = args.output_path if args.output_path else cfg["optuna"].get("output_path", "output.json")
+    n_trials = cfg["optuna"]["n_trials"]
+    dataset = cfg["dataset"]["mode"]
+    if dataset == "UNSW_NB15":
+        train_ds, test_ds, label_encoder = prepare_UNSW_NB15(cfg)
+    else:
+        train_ds, test_ds, label_encoder = preprocessing_CICIDS()
+
+    print(f"=== DATASET SELECTED: {dataset} ===")
+    input_size = train_ds["X"].shape[1]
+    n_classes = len(label_encoder.classes_)
+
+    if cfg["optuna"]["all"] == False:
+        strategy = cfg["benchmark"]["strategy"]
+        mode = cfg["benchmark"].get("mode", "single")
+        param = cfg["benchmark"].get("param", None)
+        strategies.append(strategy)
+        modes.append(mode)
+        params.append(param)
+    else:
+        strategies = cfg["optuna"]["strategies"]
+        modes = cfg["optuna"]["modes"]
+        params = cfg["optuna"]["params"]
+    
+    #
+    # -- LOOP FOR EACH STRATEGIES, MODES AND PARAMS
+    #
+    try:
+        print("Starting optimization loop... Press CTRL+C to stop and save current progress.")
+        for mode, param, strategy in itertools.product(modes, params, strategies): # its equivalent to 3 nested for loop for each array
+                    trial, best_value, best_params = hyperparameter_optimization(
+                        strategy,
+                        mode,
+                        param,
+                        train_ds,
+                        test_ds,
+                        input_size,
+                        n_classes,
+                        n_trials
+                    )
+                    row = {
+                        'mode': mode,
+                        'param': param,
+                        'strategy': strategy,
+                        "trial": trial,
+                        "best_value": best_value,
+                        "best_params": best_params
+                    }
+                    modes_best_params_list.append(row)
+        #end loop
+    except KeyboardInterrupt:
+        print("\n\n!!! EXECUTION INTERRUPTED BY USER (CTRL+C) !!!")
+        print("Saving current progress before exiting...")
+        save_results_to_file(modes_best_params_list, output_path)
+        sys.exit(0) # Exit cleanly
+
+    #Write on file
+    save_results_to_file(modes_best_params_list, output_path)
+    print(f"Optimization tuna end, result saved on: {output_path}")
 
 if __name__ == "__main__":
-    hyperparameter_optimization()
+    optimization()

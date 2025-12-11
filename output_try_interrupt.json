@@ -1,0 +1,18 @@
+[
+    {
+        "mode": "fixed",
+        "param": 1,
+        "strategy": "ICaRL",
+        "trial": 0,
+        "best_value": {
+            "lr": 3.070184544073917e-05,
+            "h1": 470,
+            "h2": 131,
+            "h3": 242,
+            "h4": 86,
+            "dropout": 0.21449566058895042,
+            "batch_size": 64
+        },
+        "best_params": 0.25941889384837047
+    }
+]
