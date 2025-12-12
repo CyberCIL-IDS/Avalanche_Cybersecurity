@@ -31,14 +31,28 @@ def save_results_to_file(data_list, output_path):
         print(f"\n[Saved] Results ({len(data_list)} entries) saved to: {output_path}")
     except Exception as e:
         print(f"\n[Error] Could not save file: {e}")
-def hyperparameter_optimization(strategy, mode, param, train_ds, test_ds, input_size, n_classes, n_trials):
+
+def hyperparameter_optimization(strategy, mode, param, train_ds, test_ds, input_size, n_classes, n_trials, my_pruner_string):
     print("=== CREATING BENCHMARK ===")
     benchmark = create_benchmark(train_ds, test_ds, mode, param)
 
     print(f"Mode: {mode}, Param: {param}")
+
+    if my_pruner_string == "MedianPruner":
+        my_pruner = optuna.pruners.MedianPruner(
+            n_startup_trials = 5,
+            n_warmup_steps = 2,
+            interval_steps = 1
+        )
+    elif my_pruner_string == "HyperbandPruner":
+        my_pruner = optuna.pruners.HyperbandPruner(
+            min_resource=1,      # The smallest amount of resource (e.g., 1 task or 1 epoch)
+            max_resource=10,     # The maximum resource (e.g., total number of tasks in stream)
+            reduction_factor=3   # How aggressively to reduce the population (keep 1/3rd)
+        )
     
     print("=== OPTUNA ===")
-    study = optuna.create_study(direction="maximize")
+    study = optuna.create_study(direction="maximize", pruner=my_pruner)
     study.optimize(
         partial(
             objective,
@@ -93,6 +107,8 @@ def optimization():
         strategies = cfg["optuna"]["strategies"]
         modes = cfg["optuna"]["modes"]
         params = cfg["optuna"]["params"]
+
+    my_pruner_string = cfg["optuna"].get("pruner", )
     
     #
     # -- LOOP FOR EACH STRATEGIES, MODES AND PARAMS
@@ -108,7 +124,8 @@ def optimization():
                         test_ds,
                         input_size,
                         n_classes,
-                        n_trials
+                        n_trials,
+                        my_pruner_string
                     )
                     row = {
                         'mode': mode,

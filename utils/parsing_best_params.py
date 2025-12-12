@@ -63,3 +63,6 @@ def parse_json(path="output_all_p1.json"):
     except Exception as e:
         logging.error(f"Errore inaspettato durante il parsing: {e}")
         return []
+
+if __name__ == "__main__":
+    parse_json()

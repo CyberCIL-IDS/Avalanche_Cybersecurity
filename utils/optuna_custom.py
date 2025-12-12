@@ -9,7 +9,7 @@ from utils.strategy import getStrategy
 import torch
 import os
 
-def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_activation, benchmark, train_epochs=15):
+def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_activation, benchmark, current_epochs=15):
 
     # ---- 1. OPTUNA HYPERPARAMETERS (Define these FIRST) ----
     # Suggest these first so they are tracked correctly
@@ -35,7 +35,6 @@ def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_a
         
         milestones = [int(current_epochs * 0.6), int(current_epochs * 0.8)]
     else:
-        current_epochs = 15
         milestones = [10, 13]
 
     # ---- 3. MODEL SETUP ----
