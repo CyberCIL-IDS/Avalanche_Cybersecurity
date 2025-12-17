@@ -8,60 +8,81 @@ from models.neural_network import NeuralNetwork
 from utils.strategy import getStrategy
 import torch
 import os
+import sys
 
-def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_activation, benchmark, current_epochs=15):
+# Rimuoviamo 'use_sigmoid_activation' dagli argomenti e lo calcoliamo dentro
+def objective(trial, device, strategy_type, input_size, n_classes, benchmark, current_epochs=None, use_sigmoid_activation=None):
 
-    # ---- 1. OPTUNA HYPERPARAMETERS (Define these FIRST) ----
-    # Suggest these first so they are tracked correctly
-    opt_lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
-    h1 = trial.suggest_int("h1", 256, 1024)
-    h2 = trial.suggest_int("h2", 128, 512)
-    h3 = trial.suggest_int("h3", 64, 256)
-    h4 = trial.suggest_int("h4", 64, 256)
-    dropout = trial.suggest_float("dropout", 0.0, 0.5)
-    batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
-
-    # ---- 2. STRATEGY CONFIGURATION ----
+    # --- 1. CONFIGURAZIONE DINAMICA IPERPARAMETRI ---
     if strategy_type == "ICaRL":
-        # ICaRL is heavy. For HPO, limit epochs to something reasonable (e.g., 20) 
-        # unless you are doing the final run.
-        current_epochs = 20  
-        
-        # FIX: Don't overwrite opt_lr if you want to search for it. 
-        # If ICaRL *requires* lr=2.0, do not use suggest_float above.
-        # Assuming you want to SEARCH for LR, we use opt_lr.
-        # If you want fixed LR for ICaRL, uncomment below:
-        # opt_lr = 2.0 
-        
-        milestones = [int(current_epochs * 0.6), int(current_epochs * 0.8)]
+        opt_lr = trial.suggest_float("lr", 0.005, 0.1, log=True)
+    elif strategy_type == "MER":
+        opt_lr = trial.suggest_float("lr", 0.001, 0.05, log=True)
     else:
-        milestones = [10, 13]
+        opt_lr = trial.suggest_float("lr", 0.0001, 0.01, log=True)
 
-    # ---- 3. MODEL SETUP ----
+    if strategy_type == "MER":
+        batch_size = trial.suggest_categorical("batch_size", [32, 64])
+    else:
+        batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
+
+    h1 = trial.suggest_int("h1", 128, 512) 
+    h2 = trial.suggest_int("h2", 128, 256)
+    h3 = trial.suggest_int("h3", 0, 128) 
+    h4 = trial.suggest_int("h4", 0, 128)
+    
+    dropout = trial.suggest_float("dropout", 0.0, 0.3)
+    weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
+
+    # --- 2. CONFIGURAZIONE EPOCHE ---
+    if current_epochs is None:
+        if strategy_type == "ICaRL":
+            current_epochs = 60 
+        elif strategy_type == "MER":
+            current_epochs = 35 
+        else:
+            current_epochs = 30 
+
+    milestones = [int(current_epochs * 0.7)]
+
+    # --- 3. FIX CRITICO: DETERMINAZIONE SIGMOIDE ---
+    # Calcoliamo qui se serve la sigmoide, ignorando argomenti esterni potenzialmente errati.
+    # ICaRL richiede TASSATIVAMENTE output [0,1] per la BCELoss.
+    force_sigmoid = True if strategy_type == "ICaRL" else False
+
+    # Gestione layer opzionali (h3, h4 possono essere 0)
+    # Assumiamo che la tua classe NeuralNetwork accetti h3, h4. 
+    # Se supporti layer variabili, gestiscili qui, altrimenti forziamo un minimo.
+    if h3 == 0: h3 = 64
+    if h4 == 0: h4 = 64
+
     model = NeuralNetwork(
         input_size=input_size, 
         num_classes=n_classes, 
-        use_sigmoid=use_sigmoid_activation, 
+        use_sigmoid=force_sigmoid,  
         h1=h1, h2=h2, h3=h3, h4=h4, 
         dropout=dropout
     ).to(device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=opt_lr)
+    # --- 4. OPTIMIZER ---
+    optimizer = torch.optim.SGD(
+        model.parameters(), 
+        lr=opt_lr, 
+        momentum=0.9, 
+        weight_decay=weight_decay
+    )
     
-    # Scheduler
     scheduler = MultiStepLR(optimizer, milestones=milestones, gamma=0.1)
     scheduler_plugin = LRSchedulerPlugin(scheduler)
 
-    # ---- 4. LIGHTWEIGHT EVALUATION ----
-    # Use TextLogger (file/stdout) instead of InteractiveLogger for speed
-    # Print to stdout only occasionally to avoid clogging
-    logger = TextLogger(open(os.devnull, 'w')) # Complete silence for speed
+    logger = TextLogger(open(os.devnull, 'w'))
     
     eval_plugin = EvaluationPlugin(
-        accuracy_metrics(experience=True, stream=False),
+        accuracy_metrics(stream=True), 
         loggers=[logger] 
     )
 
+    # --- 5. STRATEGY ---
     strategy = getStrategy(
         strategy_type=strategy_type,
         model=model,
@@ -73,42 +94,32 @@ def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_a
         batch_size=batch_size
     )
 
-    # ---- 5. TRAINING LOOP WITH PRUNING ----
-    accuracies = []
+    # --- 6. TRAINING LOOP & PRUNING ---
+    mean_acc_final = 0.0
 
-    for i, exp in enumerate(benchmark.train_stream):
-        strategy.train(exp)
-        
-        # Evaluate ONLY on the current experience (much faster) 
-        # OR evaluate on full stream if metric requires it. 
-        # Ideally, evaluating on full stream is safer for CL, but slow.
-        results = strategy.eval(benchmark.test_stream)
+    try:
+        for i, exp in enumerate(benchmark.train_stream):
+            strategy.train(exp)
+            results = strategy.eval(benchmark.test_stream)
 
-        # Get accuracy for the current experience ONLY to check immediate performance
-        # (This key assumes you want to check if it learned the LATEST task)
-        # OR calculate average accuracy of all tasks seen so far:
-        
-        current_acc_list = []
-        for k in range(i + 1): # Check all previous tasks
-            key = f"Top1_Acc_Exp/eval_phase/test_stream/Task000/Exp{k:03d}"
-            val = results.get(key)
-            if val is not None:
-                current_acc_list.append(val)
-        
-        if current_acc_list:
-            mean_acc_so_far = sum(current_acc_list) / len(current_acc_list)
-        else:
-            mean_acc_so_far = 0
+            stream_acc = results.get("Top1_Acc_Stream/eval_phase/test_stream/Task000")
+            
+            if stream_acc is None:
+                keys = [k for k in results.keys() if "Top1_Acc_Stream" in k]
+                stream_acc = results[keys[0]] if keys else 0.0
 
-        # ---- CRITICAL: PRUNING ----
-        # Report the current mean accuracy to Optuna
-        trial.report(mean_acc_so_far, step=i)
+            mean_acc_final = stream_acc 
 
-        # Handle Pruning
-        if trial.should_prune():
-            # This stops the trial IMMEDIATELY if it's performing poorly
-            raise optuna.TrialPruned()
+            trial.report(stream_acc, step=i)
+            if trial.should_prune():
+                raise optuna.TrialPruned()
+                
+    except RuntimeError as e:
+        if "all elements of input should be between 0 and 1" in str(e):
+            print("\n[CRITICAL ERROR] ICaRL ha ricevuto Logits invece di Probabilità.")
+            print("Verifica che NeuralNetwork stia usando nn.Sigmoid() alla fine.")
+            # Ritorna 0 per dire a Optuna che questo trial è fallito male
+            return 0.0
+        raise e
 
-    # ---- RETURN FINAL METRIC ----
-    # Return the average accuracy across all experiences at the end
-    return mean_acc_so_far
+    return mean_acc_final

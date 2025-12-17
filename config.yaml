@@ -4,9 +4,9 @@ dataset:
   test_csv: "datasets/UNSW_NB15/UNSW_NB15_testing-set.csv"
 
 optuna: 
-  n_trials: 10    #10-15 for test, 100+ for real results
+  n_trials: 20    #10-15 for test, 100+ for real results
   #output_path: "optuna_best_params.json" ##### we take that from args
-  all: false  #with true optuna iterate for each mode and each parameter, if false optuna take the benchmark settings 
+  all: true  #with true optuna iterate for each mode and each parameter, if false optuna take the benchmark settings 
   modes: ["fixed", "incremental"]
   strategies: ["ICaRL", "MER", "DER"]
   params: [1, 2]

@@ -1,13 +1,6 @@
 from functools import partial
 import json
 import sys
-from preprocessing.UNSW_NB15.preprocessing_UNSW_NB15 import prepare_UNSW_NB15
-from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CICIDS
-from utils.benchmark import create_benchmark
-from utils.optuna_custom import objective
-from utils.training import train
-from utils.plotting import plot_metrics
-from utils.config_loader import load_config
 import logging
 import time
 import torch
@@ -16,12 +9,19 @@ import itertools
 import argparse
 import warnings
 
+# --- 1. GLOBAL FILTER (Try to catch them early) ---
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="avalanche.*")
+warnings.filterwarnings("ignore", message="Call to deprecated function update")
+# --------------------------------------------------
 
-# def setup_logging():
-#     logging.basicConfig(
-#         level=print,
-#         format="%(asctime)s [%(levelname)s] %(message)s"
-#     )
+from preprocessing.UNSW_NB15.preprocessing_UNSW_NB15 import prepare_UNSW_NB15
+from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CICIDS
+from utils.benchmark import create_benchmark
+from utils.optuna_custom import objective
+from utils.training import train
+from utils.plotting import plot_metrics
+from utils.config_loader import load_config
+
 
 def save_results_to_file(data_list, output_path):
     #Write on file
@@ -50,6 +50,8 @@ def hyperparameter_optimization(strategy, mode, param, train_ds, test_ds, input_
             max_resource=10,     # The maximum resource (e.g., total number of tasks in stream)
             reduction_factor=3   # How aggressively to reduce the population (keep 1/3rd)
         )
+    else:
+        my_pruner = None 
     
     print("=== OPTUNA ===")
     study = optuna.create_study(direction="maximize", pruner=my_pruner)
@@ -60,7 +62,6 @@ def hyperparameter_optimization(strategy, mode, param, train_ds, test_ds, input_
             strategy_type=strategy,
             input_size=input_size,
             n_classes=n_classes,
-            use_sigmoid_activation=True if strategy == "ICaRL" else False,
             benchmark=benchmark
         ),
         n_trials=n_trials
@@ -74,10 +75,13 @@ def hyperparameter_optimization(strategy, mode, param, train_ds, test_ds, input_
     return trial, best_params, best_value
 
 def optimization():
-    #Ignore all DeprecationWarnings, specifically ignore warnings from avalanche if you want to be safer
-    warnings.filterwarnings("ignore", module="avalanche")
+    # --- 2. RUNTIME FILTER (Force silence inside the function) ---
+    # This overrides any reset that might happen during imports
+    warnings.simplefilter("ignore", DeprecationWarning)
+    # -------------------------------------------------------------
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("output_path", default=None, help="Path to save results")
+    parser.add_argument("output_path", default=None, nargs="?", help="Path to save results")
     args = parser.parse_args()
 
     cfg = load_config()
@@ -108,14 +112,17 @@ def optimization():
         modes = cfg["optuna"]["modes"]
         params = cfg["optuna"]["params"]
 
-    my_pruner_string = cfg["optuna"].get("pruner", )
+    my_pruner_string = cfg["optuna"].get("pruner", None)
     
     #
     # -- LOOP FOR EACH STRATEGIES, MODES AND PARAMS
     #
     try:
         print("Starting optimization loop... Press CTRL+C to stop and save current progress.")
-        for mode, param, strategy in itertools.product(modes, params, strategies): # its equivalent to 3 nested for loop for each array
+        for mode, param, strategy in itertools.product(modes, params, strategies): 
+                    # Skip invalid combinations if necessary (e.g. single mode with param)
+                    # if mode == "single" and param is not None: continue 
+
                     trial, best_value, best_params = hyperparameter_optimization(
                         strategy,
                         mode,
