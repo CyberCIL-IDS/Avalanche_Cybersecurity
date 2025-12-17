@@ -3,3 +3,4 @@ __pycache__
 .qodo
 .DS_Store
 datasets
+output_optuna
