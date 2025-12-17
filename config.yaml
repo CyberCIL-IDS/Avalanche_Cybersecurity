@@ -15,7 +15,7 @@ optuna:
 benchmark:
   mode: "fixed"     # ["fixed", "incremental"] 
   param: 2         #single mode: fixed and param = 1 
-  strategy: "ICaRL"         #ICaRL, MER, DER
+  strategy: "MER"         #ICaRL, MER, DER
 
 preprocessing:
   drop_columns: ["id", "label"]

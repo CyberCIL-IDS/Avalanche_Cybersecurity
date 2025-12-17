@@ -110,5 +110,6 @@ def prepare_UNSW_NB15(cfg):
     return (
         {"X": X_train_tensor, "y": y_train_tensor},
         {"X": X_test_tensor,  "y": y_test_tensor},
-        label_encoder
+        label_encoder,
+        preprocessor
     )

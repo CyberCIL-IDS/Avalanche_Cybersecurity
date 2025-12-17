@@ -28,7 +28,7 @@ def main():
 
 
     if dataset == "UNSW_NB15":
-        train_ds, test_ds, label_encoder = prepare_UNSW_NB15(cfg)
+        train_ds, test_ds, label_encoder, preprocessor = prepare_UNSW_NB15(cfg)
     else:
         train_ds, test_ds, label_encoder = preprocessing_CICIDS()
 
@@ -77,7 +77,11 @@ def main():
         strategy_type=strategy,
         mode=mode,
         param=param,
-        model_params=best_params
+        model_params=best_params,
+        cfg=cfg,
+        label_encoder=label_encoder,
+        preprocessor=preprocessor
+        
     )
 
     print("=== PLOTTING RESULTS ===")
