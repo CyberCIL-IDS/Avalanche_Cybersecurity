@@ -14,7 +14,7 @@ from utils.strategy import getStrategy
 from preprocessing.feature_engineering import clip_outliers, add_unsw_features
 from utils.plotting import plot_confusion_matrix
 
-def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, device):
+def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, strategy, mode, param, device):
     """Funzione helper per eseguire predizioni sul modello in memoria"""
     print("\n[PREDICT] Avvio validazione su campione di test set grezzo...")
     
@@ -65,7 +65,7 @@ def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, de
         acc = (preds == y_true).mean()
         print(f"--> VALIDATION ACCURACY (Raw Data Sample): {acc:.4f}")
         
-        cm_filename = f"utils/plot/confusion_matrix_{cfg['benchmark']['strategy']}_final.png"
+        cm_filename = f"utils/plot/confusion_matrix_{strategy}_{mode}_{param}final.png"
         plot_confusion_matrix(
             y_true=y_true, 
             y_pred=preds, 
@@ -76,9 +76,9 @@ def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, de
 
 
 def train(benchmark, input_size, n_classes, mode, param, model_params, 
-          # NUOVI ARGOMENTI OPZIONALI PER PREDIZIONE
-          cfg=None, preprocessor=None, label_encoder=None,
-          strategy_type="Replay", train_epochs=15, momentum=0.9, weight_decay=1e-4): 
+            # NUOVI ARGOMENTI OPZIONALI PER PREDIZIONE
+            cfg=None, preprocessor=None, label_encoder=None,
+            strategy_type="Replay", train_epochs=15, momentum=0.9, weight_decay=1e-4): 
     
     # --- 1. PULIZIA PARAMETRI (Codice esistente) ---
     params_copy = model_params.copy()
@@ -159,7 +159,7 @@ def train(benchmark, input_size, n_classes, mode, param, model_params,
                     df_test = df_test.sample(n=10000, random_state=42).reset_index(drop=True)
                 
                 print(f"[PREDICT] Eseguo predizione interna sul test set campionato ({len(df_test)} righe)...")
-                run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, device)
+                run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, strategy_type, mode, param, device)
             else:
                 print(f"[PREDICT WARNING] File test set non trovato: {test_csv}")
         except Exception as e:
