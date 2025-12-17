@@ -156,7 +156,7 @@ def train(benchmark, input_size, n_classes, mode, param, model_params,
                 df_test = pd.read_csv(test_csv)
                 # Campioniamo 2000 righe per fare veloce
                 if len(df_test) > 2000:
-                    df_test = df_test.sample(n=2000, random_state=42).reset_index(drop=True)
+                    df_test = df_test.sample(n=10000, random_state=42).reset_index(drop=True)
                 
                 print(f"[PREDICT] Eseguo predizione interna sul test set campionato ({len(df_test)} righe)...")
                 run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, device)
