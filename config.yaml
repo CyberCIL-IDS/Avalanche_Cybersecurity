@@ -16,6 +16,10 @@ benchmark:
   mode: "fixed"     # ["fixed", "incremental"] 
   param: 2         #single mode: fixed and param = 1 
   strategy: "MER"         #ICaRL, MER, DER
+  best_params_path: "optuna_best_params2.json"
+
+all_mode_training:
+  enable: true
 
 preprocessing:
   drop_columns: ["id", "label"]

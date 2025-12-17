@@ -20,13 +20,8 @@ from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CI
 def main():
     # setup_logging()
     cfg = load_config()
-    strategy = cfg["benchmark"]["strategy"]
-
     dataset = cfg["dataset"]["mode"]
-    
     print(f"=== DATASET SELECTED: {dataset} ===")
-
-
     if dataset == "UNSW_NB15":
         train_ds, test_ds, label_encoder, preprocessor = prepare_UNSW_NB15(cfg)
     else:
@@ -34,60 +29,97 @@ def main():
 
     input_size = train_ds["X"].shape[1]
     n_classes = len(label_encoder.classes_)
+    best_params_path = cfg["benchmark"]["best_params_path"]
 
-    print("=== CREATING BENCHMARK ===")
-    mode = cfg["benchmark"].get("mode", "single")
-    param = cfg["benchmark"].get("param", None)
-    benchmark = create_benchmark(train_ds, test_ds, mode, param)
+    all_results = parse_json(best_params_path) 
 
-    print(f"Mode: {mode}, Param: {param}")
-    #print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
-    #print("Dataset ready for training")
-    
-    all_results = parse_json("optuna_best_params2.json") 
-    
-    # Cerca quelli specifici per la configurazione attuale
-    best_params = None
-    
-    for entry in all_results:
-        meta = entry["meta"]
-        # Confronto: verifica che strategia, modalità e param coincidano
-        if (meta["strategy"] == strategy and 
-            meta["mode"] == mode and 
-            meta["param"] == param):
+
+    if not cfg["all_mode_training"].get("enable", False):
+
+        strategy = cfg["benchmark"]["strategy"]
+        mode = cfg["benchmark"].get("mode", "single")
+        param = cfg["benchmark"].get("param", None)
+        
+        print("=== CREATING BENCHMARK ===")
+        benchmark = create_benchmark(train_ds, test_ds, mode, param)
+
+        print(f"Mode: {mode}, Param: {param}")
+        #print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
+        #print("Dataset ready for training")
+        
+        # Cerca quelli specifici per la configurazione attuale
+        best_params = None
+        for entry in all_results:
+            meta = entry["meta"]
+            # Confronto: verifica che strategia, modalità e param coincidano
+            if (meta["strategy"] == strategy and 
+                meta["mode"] == mode and 
+                meta["param"] == param):
+                
+                # Trovato! Prendi il dizionario dei parametri
+                best_params = entry["best_hyperparameters"]
+                print(f">>> Parametri ottimali trovati: {best_params}")
+                break
+                
+        # Se non li trova, solleva un errore (così non passi None o liste vuote a train)
+        if best_params is None:
+            raise ValueError(
+                f"ERRORE CRITICO: Non sono stati trovati parametri nel JSON per la configurazione:\n"
+                f"Strategy: {strategy}, Mode: {mode}, Param: {param}.\n"
+                "Verifica che 'output_all_p1.json' contenga questa combinazione."
+            )
+
+        print("=== TRAINING ===")
+        experiences, metrics = train(
+            benchmark=benchmark,
+            input_size=input_size,
+            n_classes=n_classes,
+            strategy_type=strategy,
+            mode=mode,
+            param=param,
+            model_params=best_params,
+            cfg=cfg,
+            label_encoder=label_encoder,
+            preprocessor=preprocessor
             
-            # Trovato! Prendi il dizionario dei parametri
-            best_params = entry["best_hyperparameters"]
-            print(f">>> Parametri ottimali trovati: {best_params}")
-            break
-            
-    # Se non li trova, solleva un errore (così non passi None o liste vuote a train)
-    if best_params is None:
-        raise ValueError(
-            f"ERRORE CRITICO: Non sono stati trovati parametri nel JSON per la configurazione:\n"
-            f"Strategy: {strategy}, Mode: {mode}, Param: {param}.\n"
-            "Verifica che 'output_all_p1.json' contenga questa combinazione."
         )
 
-    print("=== TRAINING ===")
-    experiences, metrics = train(
-        benchmark=benchmark,
-        input_size=input_size,
-        n_classes=n_classes,
-        strategy_type=strategy,
-        mode=mode,
-        param=param,
-        model_params=best_params,
-        cfg=cfg,
-        label_encoder=label_encoder,
-        preprocessor=preprocessor
-        
-    )
+        print("=== PLOTTING RESULTS ===")
+        plot_metrics(experiences, metrics, strategy, mode, param)
+    else:
+        # Cerca quelli specifici per la configurazione attuale
+        best_params = None
+        for entry in all_results:
+            meta = entry["meta"]
 
-    print("=== PLOTTING RESULTS ===")
-    plot_metrics(experiences, metrics, strategy, mode, param)
+            strategy = meta["strategy"]
+            mode = meta["mode"]
+            param = meta["param"]
+            best_params = entry["best_hyperparameters"]
 
-    
+            print("=== CREATING BENCHMARK ===")
+            benchmark = create_benchmark(train_ds, test_ds, mode, param)
+
+            print("=== TRAINING ===")
+            experiences, metrics = train(
+                benchmark=benchmark,
+                input_size=input_size,
+                n_classes=n_classes,
+                strategy_type=strategy,
+                mode=mode,
+                param=param,
+                model_params=best_params,
+                cfg=cfg,
+                label_encoder=label_encoder,
+                preprocessor=preprocessor
+                
+            )
+
+            print("=== PLOTTING RESULTS ===")
+            plot_metrics(experiences, metrics, strategy, mode, param)
+
+
+
 
 
 if __name__ == "__main__":
