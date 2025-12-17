@@ -2,19 +2,19 @@ import torch
 import yaml
 import pandas as pd
 import numpy as np
-from preprocessing.loader import load_object
+import os
+from preprocessing.loader import load_object, load_model
 from preprocessing.feature_engineering import clip_outliers, add_unsw_features
-from preprocessing.loader import load_model
+from utils.plotting import plot_confusion_matrix
+from utils.parsing_best_params import parse_json # Assicurati che questo import funzioni
 
-# Importa la tua nuova funzione di plotting
-from utils.plotting import plot_confusion_matrix 
-
-def predict(model, X_tensor):
-    model.eval() # Buona norma mettere eval()
+def predict(model, X_tensor, device):
+    model.eval()
+    X_tensor = X_tensor.to(device)
     with torch.no_grad():
         outputs = model(X_tensor)
         _, preds = torch.max(outputs, 1)
-    return preds.numpy()
+    return preds.cpu().numpy()
 
 if __name__ == "__main__":
     
@@ -22,15 +22,47 @@ if __name__ == "__main__":
     with open(cfg_path) as f:
         cfg = yaml.safe_load(f)
 
+    # Parametri configurazione corrente
+    strategy = cfg['benchmark']['strategy']
+    mode = cfg['benchmark']['mode']
+    param = cfg['benchmark']['param']
+
     # Percorsi
-    model_path = f"checkpoints/model_checkpoint_{cfg['benchmark']['strategy']}_{cfg['benchmark']['mode']}_{cfg['benchmark']['param']}.pth"
+    model_path = f"checkpoints/model_checkpoint_{strategy}_{mode}_{param}.pth"
     preprocessor_path = cfg["output"]["save_preprocessor"]
     label_encoder_path = cfg["output"]["save_label_encoder"]
     data_path = cfg["dataset"]["test_csv"] 
     output_path = "datasets/predictions.csv"
-    cm_output_path = "utils/plot/confusion_matrix.png" # Percorso salvataggio immagine
+    cm_output_path = "utils/plot/confusion_matrix.png"
+    json_path = "optuna_best_params2.json" ####### Nome da cambiare
     
-    print("Caricamento risorse...")
+    print(f"=== CONFIGURAZIONE: {strategy} | {mode} | {param} ===")
+
+    # --- 1. RECUPERO IPERPARAMETRI DAL JSON ---
+    print("Ricerca iperparametri ottimali...")
+    if not os.path.exists(json_path):
+        print(f"ERRORE: File {json_path} non trovato. Impossibile ricostruire l'architettura del modello.")
+        exit()
+
+    all_results = parse_json(json_path)
+    best_params = None
+    
+    for entry in all_results:
+        meta = entry["meta"]
+        if (meta["strategy"] == strategy and 
+            meta["mode"] == mode and 
+            meta["param"] == param):
+            best_params = entry["best_hyperparameters"]
+            break
+    
+    if best_params is None:
+        print("ERRORE: Parametri non trovati nel JSON per questa configurazione.")
+        exit()
+
+    print(f"Parametri trovati: {best_params}")
+
+    # --- 2. CARICAMENTO DATI ---
+    print("\nCaricamento risorse...")
     preprocessor = load_object(preprocessor_path)
     label_encoder = load_object(label_encoder_path)
 
@@ -45,7 +77,6 @@ if __name__ == "__main__":
     
     if label_col in df_sample.columns:
         raw_labels = df_sample[label_col].fillna("Unknown").values
-        
         known_mask = np.isin(raw_labels, label_encoder.classes_)
         
         if not known_mask.all():
@@ -55,11 +86,9 @@ if __name__ == "__main__":
             raw_labels = raw_labels[known_mask]
             
         y_true = label_encoder.transform(raw_labels)
-        
         df_sample = df_sample.drop(columns=[label_col])
-    else:
-        print("Warning: Colonna label non trovata. Impossibile generare Matrice di Confusione.")
 
+    # Preprocessing (Drop, Features, Clip)
     for col in cfg["preprocessing"]["drop_columns"]:
         if col in df_sample:
             df_sample = df_sample.drop(columns=[col])
@@ -83,12 +112,18 @@ if __name__ == "__main__":
     input_size = X_tensor.shape[1]
     num_classes = len(label_encoder.classes_) 
     
-    model = load_model(model_path, input_size, num_classes)
+    # --- 3. CARICAMENTO MODELLO ---
+    print(f"Caricamento modello da: {model_path}")
+    # Passiamo strategy e best_params per ricostruire l'architettura corretta
+    model = load_model(model_path, input_size, num_classes, strategy, best_params)
     
-    preds_indices = predict(model, X_tensor)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    
+    # --- 4. PREDIZIONE ---
+    print("Esecuzione predizioni...")
+    preds_indices = predict(model, X_tensor, device)
     preds_labels = label_encoder.inverse_transform(preds_indices)
     
-    # Salva risultati nel CSV
     df_output['predicted_idx'] = preds_indices
     df_output['predicted_attack_cat'] = preds_labels
     df_output.to_csv(output_path, index=False)

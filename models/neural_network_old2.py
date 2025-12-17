@@ -6,33 +6,29 @@ class NeuralNetwork(nn.Module):
         input_size,
         num_classes,
         use_sigmoid,  
-        h1, h2, h3, h4, dropout       
+        h1,           
+        h2,           
+        h3,           
+        h4,           
+        dropout       
     ):
         super().__init__()
 
         self.feature_extractor = nn.Sequential(
-            # LAYER 1
             nn.Linear(input_size, h1),
-            nn.LayerNorm(h1),       
-            nn.LeakyReLU(0.01),     
+            nn.ReLU(),
             nn.Dropout(dropout),
 
-            # LAYER 2
             nn.Linear(h1, h2),
-            nn.LayerNorm(h2),        
-            nn.LeakyReLU(0.01),   
+            nn.ReLU(),
             nn.Dropout(dropout),
 
-            # LAYER 3
             nn.Linear(h2, h3),
-            nn.LayerNorm(h3),        
-            nn.LeakyReLU(0.01),   
+            nn.ReLU(),
             nn.Dropout(dropout),
 
-            # LAYER 4
             nn.Linear(h3, h4),
-            nn.LayerNorm(h4),       
-            nn.LeakyReLU(0.01),    
+            nn.ReLU(),
             nn.Dropout(dropout)
         )
 
@@ -42,7 +38,7 @@ class NeuralNetwork(nn.Module):
                 nn.Linear(h4, num_classes),
                 nn.Sigmoid()
             )
-        else:            # MER / DER / Naive
+        else:            # Replay / DER / Naive
             self.classifier = nn.Linear(h4, num_classes)
 
     def forward(self, x):

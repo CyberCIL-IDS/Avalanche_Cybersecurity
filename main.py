@@ -44,7 +44,7 @@ def main():
     #print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
     #print("Dataset ready for training")
     
-    all_results = parse_json("output_all_p1.json") 
+    all_results = parse_json("optuna_best_params2.json") 
     
     # Cerca quelli specifici per la configurazione attuale
     best_params = None
