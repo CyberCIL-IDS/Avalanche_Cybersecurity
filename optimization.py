@@ -22,6 +22,10 @@ from utils.training import train
 from utils.plotting import plot_metrics
 from utils.config_loader import load_config
 
+torch.set_float32_matmul_precision('high') 
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+
 
 def save_results_to_file(data_list, output_path):
     #Write on file

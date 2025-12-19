@@ -74,6 +74,7 @@ def main():
             benchmark=benchmark,
             input_size=input_size,
             n_classes=n_classes,
+            dataset=dataset,
             strategy_type=strategy,
             mode=mode,
             param=param,
@@ -105,6 +106,7 @@ def main():
                 benchmark=benchmark,
                 input_size=input_size,
                 n_classes=n_classes,
+                dataset=dataset,
                 strategy_type=strategy,
                 mode=mode,
                 param=param,
@@ -116,7 +118,7 @@ def main():
             )
 
             print("=== PLOTTING RESULTS ===")
-            plot_metrics(experiences, metrics, strategy, mode, param)
+            plot_metrics(experiences, metrics, dataset, strategy, mode, param)
 
 
 

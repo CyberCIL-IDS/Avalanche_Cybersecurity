@@ -14,7 +14,7 @@ from utils.strategy import getStrategy
 from preprocessing.feature_engineering import clip_outliers, add_unsw_features
 from utils.plotting import plot_confusion_matrix
 
-def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, strategy, mode, param, device):
+def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, strategy, mode, param, device, dataset):
     """Funzione helper per eseguire predizioni sul modello in memoria"""
     print("\n[PREDICT] Avvio validazione su campione di test set grezzo...")
     
@@ -65,7 +65,7 @@ def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, st
         acc = (preds == y_true).mean()
         print(f"--> VALIDATION ACCURACY (Raw Data Sample): {acc:.4f}")
         
-        cm_filename = f"utils/plot/confusion_matrix_{strategy}_{mode}_{param}final.png"
+        cm_filename = f"utils/plot_{dataset}/confusion_matrix_{strategy}_{mode}_{param}.png"
         plot_confusion_matrix(
             y_true=y_true, 
             y_pred=preds, 
@@ -75,10 +75,9 @@ def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, st
         print(f"[PREDICT] Matrice di confusione salvata in: {cm_filename}")
 
 
-def train(benchmark, input_size, n_classes, mode, param, model_params, 
-            # NUOVI ARGOMENTI OPZIONALI PER PREDIZIONE
+def train(benchmark, input_size, n_classes, dataset, mode, param, model_params, 
             cfg=None, preprocessor=None, label_encoder=None,
-            strategy_type="Replay", train_epochs=100, momentum=0.9, weight_decay=1e-4): 
+            strategy_type="Replay", train_epochs=5, momentum=0.9, weight_decay=1e-4): 
     
     # --- 1. PULIZIA PARAMETRI (Codice esistente) ---
     params_copy = model_params.copy()
@@ -87,13 +86,10 @@ def train(benchmark, input_size, n_classes, mode, param, model_params,
     batch_size = params_copy.pop("batch_size", 32)
     if "weight_decay" in params_copy: weight_decay = params_copy.pop("weight_decay")
     
-    use_sigmoid_activation = (strategy_type == "ICaRL")
-    
     # --- 2. ISTANZIAZIONE MODELLO ---
     model = NeuralNetwork(
         input_size=input_size, 
         num_classes=n_classes, 
-        use_sigmoid=use_sigmoid_activation,
         **params_copy 
     )
 
@@ -159,7 +155,7 @@ def train(benchmark, input_size, n_classes, mode, param, model_params,
                     df_test = df_test.sample(n=10000, random_state=42).reset_index(drop=True)
                 
                 print(f"[PREDICT] Eseguo predizione interna sul test set campionato ({len(df_test)} righe)...")
-                run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, strategy_type, mode, param, device)
+                run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, strategy_type, mode, param, device, dataset)
             else:
                 print(f"[PREDICT WARNING] File test set non trovato: {test_csv}")
         except Exception as e:

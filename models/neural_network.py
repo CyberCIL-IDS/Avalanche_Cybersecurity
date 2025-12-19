@@ -5,7 +5,6 @@ class NeuralNetwork(nn.Module):
         self,
         input_size,
         num_classes,
-        use_sigmoid,  
         h1, h2, h3, h4, dropout       
     ):
         super().__init__()
