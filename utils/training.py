@@ -78,7 +78,7 @@ def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, st
 def train(benchmark, input_size, n_classes, mode, param, model_params, 
             # NUOVI ARGOMENTI OPZIONALI PER PREDIZIONE
             cfg=None, preprocessor=None, label_encoder=None,
-            strategy_type="Replay", train_epochs=15, momentum=0.9, weight_decay=1e-4): 
+            strategy_type="Replay", train_epochs=100, momentum=0.9, weight_decay=1e-4): 
     
     # --- 1. PULIZIA PARAMETRI (Codice esistente) ---
     params_copy = model_params.copy()

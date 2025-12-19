@@ -6,7 +6,7 @@ from utils.optuna_custom import objective
 from utils.training import train
 from utils.plotting import plot_metrics
 from utils.config_loader import load_config
-import time
+import torch
 from utils.parsing_best_params import parse_json
 from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CICIDS
 
@@ -25,7 +25,7 @@ def main():
     if dataset == "UNSW_NB15":
         train_ds, test_ds, label_encoder, preprocessor = prepare_UNSW_NB15(cfg)
     else:
-        train_ds, test_ds, label_encoder = preprocessing_CICIDS()
+        train_ds, test_ds, label_encoder, preprocessor = preprocessing_CICIDS()
 
     input_size = train_ds["X"].shape[1]
     n_classes = len(label_encoder.classes_)

@@ -11,41 +11,31 @@ class NeuralNetwork(nn.Module):
         super().__init__()
 
         self.feature_extractor = nn.Sequential(
-            # LAYER 1
             nn.Linear(input_size, h1),
             nn.LayerNorm(h1),       
             nn.LeakyReLU(0.01),     
             nn.Dropout(dropout),
 
-            # LAYER 2
             nn.Linear(h1, h2),
             nn.LayerNorm(h2),        
             nn.LeakyReLU(0.01),   
             nn.Dropout(dropout),
 
-            # LAYER 3
             nn.Linear(h2, h3),
             nn.LayerNorm(h3),        
             nn.LeakyReLU(0.01),   
             nn.Dropout(dropout),
 
-            # LAYER 4
             nn.Linear(h3, h4),
             nn.LayerNorm(h4),       
             nn.LeakyReLU(0.01),    
             nn.Dropout(dropout)
         )
 
-        # classifier
-        if use_sigmoid:  # iCaRL
-            self.classifier = nn.Sequential(
-                nn.Linear(h4, num_classes),
-                nn.Sigmoid()
-            )
-        else:            # MER / DER / Naive
-            self.classifier = nn.Linear(h4, num_classes)
+        
+        self.classifier = nn.Linear(h4, num_classes)
 
     def forward(self, x):
         x = self.feature_extractor(x)
         x = self.classifier(x)
-        return x
+        return x  # Ritorna sempre logits

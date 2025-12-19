@@ -21,10 +21,17 @@ def objective(trial, device, strategy_type, input_size, n_classes, benchmark, cu
     else:
         opt_lr = trial.suggest_float("lr", 0.0001, 0.01, log=True)
 
+    # if strategy_type == "MER":
+    #     batch_size = trial.suggest_categorical("batch_size", [32, 64])
+    # else:
+    #     batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
+
     if strategy_type == "MER":
-        batch_size = trial.suggest_categorical("batch_size", [32, 64])
+        # MER è pesante in memoria, stiamo un po' più bassi ma comunque alziamo
+        batch_size = trial.suggest_categorical("batch_size", [128, 256, 512])
     else:
-        batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
+        # ICaRL, DER e Replay volano con batch alti
+        batch_size = trial.suggest_categorical("batch_size", [512, 1024, 2048, 4096])
 
     h1 = trial.suggest_int("h1", 128, 512) 
     h2 = trial.suggest_int("h2", 128, 256)

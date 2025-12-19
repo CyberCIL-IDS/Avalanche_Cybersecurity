@@ -50,7 +50,7 @@ def prepare_dataset_multi_csv(
     output_label_encoder_path,
     balance_classes=False,
     target_count=1500,
-    sample_fraction=0.20  # usa il 20% dei dati 
+    sample_fraction=0.15  # usa il 20% dei dati 
 ):
     """
     Preprocessing completo con Split Stratificato e Sottocampionamento opzionale.
@@ -129,7 +129,8 @@ def prepare_dataset_multi_csv(
     return (
         {"X": X_train_tensor, "y": y_train_tensor},
         {"X": X_test_tensor, "y": y_test_tensor},
-        label_encoder
+        label_encoder,
+        preprocessor
     )
 
 

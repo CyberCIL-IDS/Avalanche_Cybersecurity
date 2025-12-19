@@ -80,6 +80,9 @@ def optimization():
     warnings.simplefilter("ignore", DeprecationWarning)
     # -------------------------------------------------------------
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+
     parser = argparse.ArgumentParser()
     parser.add_argument("output_path", default=None, nargs="?", help="Path to save results")
     args = parser.parse_args()
@@ -92,7 +95,7 @@ def optimization():
     n_trials = cfg["optuna"]["n_trials"]
     dataset = cfg["dataset"]["mode"]
     if dataset == "UNSW_NB15":
-        train_ds, test_ds, label_encoder = prepare_UNSW_NB15(cfg)
+        train_ds, test_ds, label_encoder, _= prepare_UNSW_NB15(cfg)
     else:
         train_ds, test_ds, label_encoder = preprocessing_CICIDS()
 

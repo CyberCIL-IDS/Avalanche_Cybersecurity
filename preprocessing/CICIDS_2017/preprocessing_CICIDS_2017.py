@@ -18,7 +18,7 @@ def preprocessing_CICIDS():
     label_col = "Label"       # nel tuo dataset
     clip_p = 0.99
 
-    train_data, test_data, label_encoder = prepare_dataset_multi_csv(
+    train_data, test_data, label_encoder, preprocessor = prepare_dataset_multi_csv(
         train_files,
         test_files,
         categorical,
@@ -27,4 +27,4 @@ def preprocessing_CICIDS():
         "preprocessing/CICIDS_2017/saved_preprocessor_UNSW_NB15.pkl",
         "preprocessing/CICIDS_2017/label_encoder_UNSW_NB15.pkl"
     )
-    return train_data, test_data, label_encoder
+    return train_data, test_data, label_encoder, preprocessor
