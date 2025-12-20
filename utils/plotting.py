@@ -38,7 +38,7 @@ def plot_metrics(experiences, metrics, dataset, strategy, mode, param):
     plt.savefig(filename)
     plt.close()  # chiudi figura per liberare memoria
 
-def plot_confusion_matrix(y_true, y_pred, classes, title="Confusion Matrix", filename="utils/plot/confusion_matrix.png"):
+def plot_confusion_matrix(y_true, y_pred, classes, filename, title="Confusion Matrix"):
     """
     Genera, mostra e salva la matrice di confusione normalizzata.
     
@@ -46,8 +46,8 @@ def plot_confusion_matrix(y_true, y_pred, classes, title="Confusion Matrix", fil
         y_true (array): Etichette vere (indici numerici).
         y_pred (array): Etichette predette (indici numerici).
         classes (list): Lista dei nomi delle classi.
-        title (str): Titolo del grafico.
         filename (str): Percorso dove salvare l'immagine.
+        title (str): Titolo del grafico.
     """
     # Calcola la matrice di confusione
     cm = confusion_matrix(y_true, y_pred)

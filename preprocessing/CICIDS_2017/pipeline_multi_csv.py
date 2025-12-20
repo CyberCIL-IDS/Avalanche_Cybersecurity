@@ -48,8 +48,8 @@ def prepare_dataset_multi_csv(
     clip_percentile,
     output_preprocessor_path,
     output_label_encoder_path,
-    balance_classes=False,
-    target_count=1500,
+    balance_classes=True,
+    target_count=5000,
     sample_fraction=1  # usa il 20% dei dati 
 ):
     """

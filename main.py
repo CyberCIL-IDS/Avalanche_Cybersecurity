@@ -71,6 +71,7 @@ def main():
 
         print("=== TRAINING ===")
         experiences, metrics = train(
+            test_ds=test_ds,
             benchmark=benchmark,
             input_size=input_size,
             n_classes=n_classes,
@@ -86,7 +87,7 @@ def main():
         )
 
         print("=== PLOTTING RESULTS ===")
-        plot_metrics(experiences, metrics, strategy, mode, param)
+        plot_metrics(experiences, metrics, dataset, strategy, mode, param)
     else:
         # Cerca quelli specifici per la configurazione attuale
         best_params = None
@@ -103,6 +104,7 @@ def main():
 
             print("=== TRAINING ===")
             experiences, metrics = train(
+                test_ds=test_ds,
                 benchmark=benchmark,
                 input_size=input_size,
                 n_classes=n_classes,

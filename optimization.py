@@ -99,9 +99,9 @@ def optimization():
     n_trials = cfg["optuna"]["n_trials"]
     dataset = cfg["dataset"]["mode"]
     if dataset == "UNSW_NB15":
-        train_ds, test_ds, label_encoder, _= prepare_UNSW_NB15(cfg)
+        train_ds, test_ds, label_encoder, _ = prepare_UNSW_NB15(cfg)
     else:
-        train_ds, test_ds, label_encoder = preprocessing_CICIDS()
+        train_ds, test_ds, label_encoder, _ = preprocessing_CICIDS()
 
     print(f"=== DATASET SELECTED: {dataset} ===")
     input_size = train_ds["X"].shape[1]
