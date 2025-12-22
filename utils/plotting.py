@@ -12,7 +12,6 @@ def plot_metrics(experiences, metrics, dataset, strategy, mode, param):
         if key in metrics:
             acc_exp.append(metrics[key])
 
-    # Forgetting per experience
     forget_exp = [0.0]
     for i in range(experiences):
         key = f"ExperienceForgetting/eval_phase/test_stream/Task000/Exp{i:03d}"
@@ -36,7 +35,7 @@ def plot_metrics(experiences, metrics, dataset, strategy, mode, param):
     print(f"accuracy: {acc_exp} forgetting: {forget_exp} experiences: {exp_ids}")
     # salva immagine
     plt.savefig(filename)
-    plt.close()  # chiudi figura per liberare memoria
+    plt.close() 
 
 def plot_confusion_matrix(y_true, y_pred, classes, filename, title="Confusion Matrix"):
     """
@@ -52,13 +51,10 @@ def plot_confusion_matrix(y_true, y_pred, classes, filename, title="Confusion Ma
     # Calcola la matrice di confusione
     cm = confusion_matrix(y_true, y_pred)
     
-    # Normalizza la matrice (valori da 0 a 1)
-    # Aggiungiamo 1e-10 per evitare divisioni per zero se una classe non è presente
     cm_norm = cm.astype('float') / (cm.sum(axis=1)[:, np.newaxis] + 1e-10)
     
     plt.figure(figsize=(12, 10))
     
-    # Disegna heatmap usando Seaborn
     sns.heatmap(cm_norm, annot=True, fmt='.2f', cmap='Blues',
                 xticklabels=classes, yticklabels=classes)
     

@@ -10,19 +10,15 @@ import torch
 
 def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_activation, benchmark, train_epochs=15):
 
-    # --- CONFIGURAZIONE ---
     if strategy_type == "ICaRL":
-        # ICaRL richiede molte epoche e LR alto gestito da scheduler
         current_epochs = 100 if train_epochs < 50 else train_epochs
         lr = 2.0
         milestones = [int(current_epochs * 0.6), int(current_epochs * 0.8)]
     else:
-        # Replay e DER richiedono LR standard e meno epoche
         current_epochs = 15
-        lr = 0.01  # Valore sicuro per Replay
+        lr = 0.01  
         milestones = [10, 13]
 
-    # ---- OPTUNA HYPERPARAMETERS ----
     lr = trial.suggest_float("lr", 1e-5, 1e-2, log=True)
     h1 = trial.suggest_int("h1", 256, 1024)
     h2 = trial.suggest_int("h2", 128, 512)
@@ -32,7 +28,6 @@ def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_a
     dropout = trial.suggest_float("dropout", 0.0, 0.5)
     batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
 
-    # ---- MODEL ----
     model = NeuralNetwork(
         input_size=input_size, 
         num_classes=n_classes, 
@@ -53,7 +48,6 @@ def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_a
 
     plugins_list = [scheduler_plugin]
 
-    # ---- STRATEGY ----
     eval_plugin = EvaluationPlugin(
         accuracy_metrics(experience=True, stream=False),
         loggers=[InteractiveLogger()]
@@ -70,18 +64,11 @@ def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_a
         batch_size=batch_size
     )
 
-    # ---- TRAIN + EVAL OVER ALL EXPERIENCES ----
     accuracies = []
 
     for exp in benchmark.train_stream:
         strategy.train(exp)
         results = strategy.eval(benchmark.test_stream)
-
-        # Avalanche results dict example:
-        # {"Top1_Acc_Exp/eval_phase/test_stream/Task000": 0.85, ...}
-
-        # Extract last experience accuracy
-        #exp_key = f"Top1_Acc_Exp/eval_phase/test_stream/Task000/Exp{exp.current_experience}"
 
         key = (
             f"Top1_Acc_Exp/"
@@ -93,7 +80,6 @@ def objective(trial, device, strategy_type, input_size, n_classes, use_sigmoid_a
         if acc is not None:
             accuracies.append(acc)
 
-    # ---- RETURN METRIC TO OPTIMIZE ----
     if len(accuracies) == 0:
         return 0.0
 

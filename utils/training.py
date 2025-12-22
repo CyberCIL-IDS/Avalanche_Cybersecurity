@@ -9,16 +9,11 @@ from torch.optim.lr_scheduler import MultiStepLR
 from utils.checkpoint_custom_plugin import CheckpointPlugin
 from models.neural_network import NeuralNetwork
 from utils.strategy import getStrategy
-
-# Import per la predizione interna
 from preprocessing.feature_engineering import clip_outliers, add_unsw_features
 from utils.plotting import plot_confusion_matrix
 
 def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, strategy, mode, param, device, dataset):
-    """Funzione helper per eseguire predizioni sul modello in memoria"""
-    print("\n[PREDICT] Avvio validazione su campione di test set grezzo...")
     
-    # 1. Preprocessing "al volo" (Simile a predict.py)
     df_sample = df_test.copy()
     label_col = cfg["preprocessing"]["label_column"]
     y_true = None
@@ -86,13 +81,11 @@ def run_prediction_on_tensors(model, test_ds, label_encoder, strategy, mode, par
         if isinstance(y_true, torch.Tensor):
              y_true = y_true.cpu().numpy()
     else:
-        # Fallback se è un TensorDataset
         X_test = test_ds.tensors[0]
         y_true = test_ds.tensors[1].cpu().numpy()
 
     device = next(model.parameters()).device
     
-    # Se X_test è molto grande, facciamo inferenza a batch per non finire la VRAM
     batch_size = 4096
     model.eval()
     all_preds = []
@@ -127,7 +120,6 @@ def train(test_ds, benchmark, input_size, n_classes, dataset, mode, param, model
             cfg=None, preprocessor=None, label_encoder=None,
             strategy_type="Replay", train_epochs=5, momentum=0.9, weight_decay=1e-4): 
     
-    # ... (Parte iniziale di setup modello, optimizer e strategia invariata) ...
     params_copy = model_params.copy()
     if "lr" not in params_copy: raise ValueError("Manca 'lr'")
     lr = params_copy.pop("lr")
@@ -175,21 +167,16 @@ def train(test_ds, benchmark, input_size, n_classes, dataset, mode, param, model
         batch_size=batch_size
     )
 
-    # --- TRAINING LOOP ---
+    # TRAINING LOOP 
     for i, experience in enumerate(benchmark.train_stream):
         print(f"Training Exp {i}: {experience.classes_in_this_experience}")
         strategy.train(experience)
         print("Evaluation...")
         strategy.eval(benchmark.test_stream)
 
-    # ========================================================
-    # === GESTIONE PREDIZIONE FINALE (Dataset Specific) ===
-    # ========================================================
     if cfg and label_encoder:
         csv_prediction_done = False
         
-        # --- CASO 1: UNSW_NB15 ---
-        # Per UNSW preferiamo usare il CSV grezzo per validare la pipeline di preprocessing
         if dataset == "UNSW_NB15" and preprocessor:
             try:
                 test_csv_path = cfg["dataset"].get("test_csv", "")
@@ -206,9 +193,6 @@ def train(test_ds, benchmark, input_size, n_classes, dataset, mode, param, model
             except Exception as e:
                 print(f"[PREDICT WARNING] Validazione CSV UNSW fallita ({e}). Passo ai tensori.")
 
-        # --- CASO 2: CICIDS_2017 (o Fallback) ---
-        # Per CICIDS (o se UNSW fallisce) usiamo direttamente i tensori (test_ds)
-        # Questo salta il caricamento del CSV che potrebbe essere problematico per CICIDS
         if not csv_prediction_done and test_ds is not None:
              print(f"[PREDICT] Validazione su dataset: {dataset} usando Tensori (test_ds)")
              try:

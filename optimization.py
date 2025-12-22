@@ -8,12 +8,6 @@ import optuna
 import itertools
 import argparse
 import warnings
-
-# --- 1. GLOBAL FILTER (Try to catch them early) ---
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="avalanche.*")
-warnings.filterwarnings("ignore", message="Call to deprecated function update")
-# --------------------------------------------------
-
 from preprocessing.UNSW_NB15.preprocessing_UNSW_NB15 import prepare_UNSW_NB15
 from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CICIDS
 from utils.benchmark import create_benchmark
@@ -22,13 +16,13 @@ from utils.training import train
 from utils.plotting import plot_metrics
 from utils.config_loader import load_config
 
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="avalanche.*")
+warnings.filterwarnings("ignore", message="Call to deprecated function update")
 torch.set_float32_matmul_precision('high') 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
 
-
 def save_results_to_file(data_list, output_path):
-    #Write on file
     try:
         with open(output_path, 'w') as output_file:
             json.dump(data_list, output_file, indent=4)
@@ -50,9 +44,9 @@ def hyperparameter_optimization(strategy, mode, param, train_ds, test_ds, input_
         )
     elif my_pruner_string == "HyperbandPruner":
         my_pruner = optuna.pruners.HyperbandPruner(
-            min_resource=1,      # The smallest amount of resource (e.g., 1 task or 1 epoch)
-            max_resource=10,     # The maximum resource (e.g., total number of tasks in stream)
-            reduction_factor=3   # How aggressively to reduce the population (keep 1/3rd)
+            min_resource=1,      
+            max_resource=10,     
+            reduction_factor=3   
         )
     else:
         my_pruner = None 
@@ -79,10 +73,7 @@ def hyperparameter_optimization(strategy, mode, param, train_ds, test_ds, input_
     return trial, best_params, best_value
 
 def optimization():
-    # --- 2. RUNTIME FILTER (Force silence inside the function) ---
-    # This overrides any reset that might happen during imports
     warnings.simplefilter("ignore", DeprecationWarning)
-    # -------------------------------------------------------------
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
@@ -121,15 +112,9 @@ def optimization():
 
     my_pruner_string = cfg["optuna"].get("pruner", None)
     
-    #
-    # -- LOOP FOR EACH STRATEGIES, MODES AND PARAMS
-    #
     try:
         print("Starting optimization loop... Press CTRL+C to stop and save current progress.")
         for mode, param, strategy in itertools.product(modes, params, strategies): 
-                    # Skip invalid combinations if necessary (e.g. single mode with param)
-                    # if mode == "single" and param is not None: continue 
-
                     trial, best_value, best_params = hyperparameter_optimization(
                         strategy,
                         mode,
@@ -150,14 +135,12 @@ def optimization():
                         "best_params": best_params
                     }
                     modes_best_params_list.append(row)
-        #end loop
     except KeyboardInterrupt:
         print("\n\n!!! EXECUTION INTERRUPTED BY USER (CTRL+C) !!!")
         print("Saving current progress before exiting...")
         save_results_to_file(modes_best_params_list, output_path)
-        sys.exit(0) # Exit cleanly
+        sys.exit(0) 
 
-    #Write on file
     save_results_to_file(modes_best_params_list, output_path)
     print(f"Optimization tuna end, result saved on: {output_path}")
 

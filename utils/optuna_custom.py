@@ -10,10 +10,8 @@ import torch
 import os
 import sys
 
-# Rimuoviamo 'use_sigmoid_activation' dagli argomenti e lo calcoliamo dentro
-def objective(trial, device, strategy_type, input_size, n_classes, benchmark, current_epochs=None, use_sigmoid_activation=None):
+def objective(trial, device, strategy_type, input_size, n_classes, benchmark, current_epochs=None):
 
-    # --- 1. CONFIGURAZIONE DINAMICA IPERPARAMETRI ---
     if strategy_type == "ICaRL":
         opt_lr = trial.suggest_float("lr", 0.005, 0.1, log=True)
     elif strategy_type == "MER":
@@ -21,16 +19,9 @@ def objective(trial, device, strategy_type, input_size, n_classes, benchmark, cu
     else:
         opt_lr = trial.suggest_float("lr", 0.0001, 0.01, log=True)
 
-    # if strategy_type == "MER":
-    #     batch_size = trial.suggest_categorical("batch_size", [32, 64])
-    # else:
-    #     batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
-
     if strategy_type == "MER":
-        # MER è pesante in memoria, stiamo un po' più bassi ma comunque alziamo
         batch_size = trial.suggest_categorical("batch_size", [128, 256, 512])
     else:
-        # ICaRL, DER e Replay volano con batch alti
         batch_size = trial.suggest_categorical("batch_size", [512, 1024, 2048, 4096])
 
     h1 = trial.suggest_int("h1", 128, 512) 
@@ -41,7 +32,6 @@ def objective(trial, device, strategy_type, input_size, n_classes, benchmark, cu
     dropout = trial.suggest_float("dropout", 0.0, 0.3)
     weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
 
-    # --- 2. CONFIGURAZIONE EPOCHE ---
     if current_epochs is None:
         if strategy_type == "ICaRL":
             current_epochs = 60 
@@ -52,14 +42,6 @@ def objective(trial, device, strategy_type, input_size, n_classes, benchmark, cu
 
     milestones = [int(current_epochs * 0.7)]
 
-    # --- 3. FIX CRITICO: DETERMINAZIONE SIGMOIDE ---
-    # Calcoliamo qui se serve la sigmoide, ignorando argomenti esterni potenzialmente errati.
-    # ICaRL richiede TASSATIVAMENTE output [0,1] per la BCELoss.
-    force_sigmoid = True if strategy_type == "ICaRL" else False
-
-    # Gestione layer opzionali (h3, h4 possono essere 0)
-    # Assumiamo che la tua classe NeuralNetwork accetti h3, h4. 
-    # Se supporti layer variabili, gestiscili qui, altrimenti forziamo un minimo.
     if h3 == 0: h3 = 64
     if h4 == 0: h4 = 64
 
@@ -70,7 +52,6 @@ def objective(trial, device, strategy_type, input_size, n_classes, benchmark, cu
         dropout=dropout
     ).to(device)
 
-    # --- 4. OPTIMIZER ---
     optimizer = torch.optim.SGD(
         model.parameters(), 
         lr=opt_lr, 
@@ -88,7 +69,6 @@ def objective(trial, device, strategy_type, input_size, n_classes, benchmark, cu
         loggers=[logger] 
     )
 
-    # --- 5. STRATEGY ---
     strategy = getStrategy(
         strategy_type=strategy_type,
         model=model,
@@ -100,7 +80,6 @@ def objective(trial, device, strategy_type, input_size, n_classes, benchmark, cu
         batch_size=batch_size
     )
 
-    # --- 6. TRAINING LOOP & PRUNING ---
     mean_acc_final = 0.0
 
     try:

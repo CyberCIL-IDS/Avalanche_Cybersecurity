@@ -14,8 +14,8 @@ def preprocessing_CICIDS():
         "datasets/CICIDS_2017/Wednesday-workingHours.pcap_ISCX.csv"
     ]
 
-    categorical = []          # se ne hai
-    label_col = "Label"       # nel tuo dataset
+    categorical = []         
+    label_col = "Label"     
     clip_p = 0.99
 
     train_data, test_data, label_encoder, preprocessor = prepare_dataset_multi_csv(

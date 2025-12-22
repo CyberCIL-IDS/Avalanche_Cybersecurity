@@ -13,7 +13,7 @@ optuna:
   pruner: "HyperbandPruner"   #MedianPruner, HyperbandPruner
 
 benchmark:
-  mode: "incremental"     # ["fixed", "incremental"] 
+  mode: "incremental"     #["fixed", "incremental"] 
   param: 2         #single mode: fixed and param = 1 
   strategy: "ICaRL"         #ICaRL, MER, DER
   best_params_path: "utils/optuna/optuna_best_params2.json"

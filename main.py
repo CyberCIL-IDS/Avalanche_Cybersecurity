@@ -1,4 +1,3 @@
-import logging
 from preprocessing.UNSW_NB15.preprocessing_UNSW_NB15 import prepare_UNSW_NB15
 from utils import optuna_custom
 from utils.benchmark import create_benchmark
@@ -6,19 +5,10 @@ from utils.optuna_custom import objective
 from utils.training import train
 from utils.plotting import plot_metrics
 from utils.config_loader import load_config
-import torch
 from utils.parsing_best_params import parse_json
 from preprocessing.CICIDS_2017.preprocessing_CICIDS_2017 import preprocessing_CICIDS
 
-
-# def setup_logging():
-#     logging.basicConfig(
-#         level=print,
-#         format="%(asctime)s [%(levelname)s] %(message)s"
-#     )
-
 def main():
-    # setup_logging()
     cfg = load_config()
     dataset = cfg["dataset"]["mode"]
     print(f"=== DATASET SELECTED: {dataset} ===")
@@ -44,24 +34,19 @@ def main():
         benchmark = create_benchmark(train_ds, test_ds, mode, param)
 
         print(f"Mode: {mode}, Param: {param}")
-        #print(f"Train shape: {train_ds['X'].shape}, Test shape: {test_ds['X'].shape}")
-        #print("Dataset ready for training")
-        
-        # Cerca quelli specifici per la configurazione attuale
+
         best_params = None
         for entry in all_results:
             meta = entry["meta"]
-            # Confronto: verifica che strategia, modalità e param coincidano
+
             if (meta["strategy"] == strategy and 
                 meta["mode"] == mode and 
                 meta["param"] == param):
                 
-                # Trovato! Prendi il dizionario dei parametri
                 best_params = entry["best_hyperparameters"]
                 print(f">>> Parametri ottimali trovati: {best_params}")
                 break
-                
-        # Se non li trova, solleva un errore (così non passi None o liste vuote a train)
+
         if best_params is None:
             raise ValueError(
                 f"ERRORE CRITICO: Non sono stati trovati parametri nel JSON per la configurazione:\n"
@@ -89,7 +74,6 @@ def main():
         print("=== PLOTTING RESULTS ===")
         plot_metrics(experiences, metrics, dataset, strategy, mode, param)
     else:
-        # Cerca quelli specifici per la configurazione attuale
         best_params = None
         for entry in all_results:
             meta = entry["meta"]
@@ -116,15 +100,10 @@ def main():
                 cfg=cfg,
                 label_encoder=label_encoder,
                 preprocessor=preprocessor
-                
             )
 
             print("=== PLOTTING RESULTS ===")
             plot_metrics(experiences, metrics, dataset, strategy, mode, param)
-
-
-
-
 
 if __name__ == "__main__":
     main()

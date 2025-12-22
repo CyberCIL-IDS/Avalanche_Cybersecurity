@@ -50,20 +50,14 @@ def prepare_dataset_multi_csv(
     output_label_encoder_path,
     balance_classes=True,
     target_count=5000,
-    sample_fraction=1  # usa il 20% dei dati 
+    sample_fraction=0.2  # usa il 20% dei dati 
 ):
-    """
-    Preprocessing completo con Split Stratificato e Sottocampionamento opzionale.
-    """
-
-    # 1. UNISCI E PULISCI I DATI
+    
     all_files = train_files + test_files
     df_total = load_multiple_csv(all_files)
 
-    # 2. CLIP OUTLIERS
     df_total = clip_outliers(df_total, clip_percentile)
 
-    # 3. ENCODE LABELS (Globale)
     df_total = df_total[df_total[label_column].notna()]
     
     label_encoder = LabelEncoder()
@@ -71,13 +65,11 @@ def prepare_dataset_multi_csv(
     
     print(f"DEBUG: Classi totali trovate ({len(label_encoder.classes_)}): {label_encoder.classes_}")
 
-    # 4. PREPARE COLUMN GROUPS
     numerical_cols = [
         c for c in df_total.columns 
         if c not in categorical_cols + [label_column]
     ]
 
-    # 5. BUILD PREPROCESSOR & TRANSFORM X
     preprocessor = build_preprocessor(categorical_cols, numerical_cols)
     X_all = preprocessor.fit_transform(df_total.drop(columns=[label_column]))
 
@@ -93,7 +85,6 @@ def prepare_dataset_multi_csv(
         )
         print(f"Nuova dimensione ridotta: {X_all.shape[0]}")
 
-    # 6. SPLIT TRAIN / TEST STRATIFICATO
     print("Eseguendo split stratificato 70/30...")
     X_train, X_test, y_train, y_test = train_test_split(
         X_all, y_all, 
@@ -102,12 +93,10 @@ def prepare_dataset_multi_csv(
         stratify=y_all 
     )
 
-    # 7. BILANCIAMENTO (Solo Train)
     if balance_classes:
         print(f"Bilanciamento classi nel Training Set (target={target_count})...")
         X_train, y_train = balance_samples(X_train, y_train, target_count)
 
-    # 8. CONVERSIONE IN TENSORI (Gestione sparsa/densa)
     if hasattr(X_train, "toarray"):
         X_train_np = X_train.toarray()
         X_test_np = X_test.toarray()
@@ -115,14 +104,12 @@ def prepare_dataset_multi_csv(
         X_train_np = X_train
         X_test_np = X_test
 
-    # Convertiamo in float32 e long
     X_train_tensor = torch.tensor(X_train_np, dtype=torch.float32)
     y_train_tensor = torch.tensor(y_train, dtype=torch.long)
 
     X_test_tensor = torch.tensor(X_test_np, dtype=torch.float32)
     y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
-    # 9. SALVATAGGIO
     save_object(preprocessor, output_preprocessor_path)
     save_object(label_encoder, output_label_encoder_path)
 
@@ -136,7 +123,6 @@ def prepare_dataset_multi_csv(
 
 def balance_samples(X, y, target_count=1500):
     classes, counts = np.unique(y, return_counts=True)
-    # print(f"DEBUG: Distribuzione pre-balance: {dict(zip(classes, counts))}")
 
     X_balanced = []
     y_balanced = []
@@ -148,10 +134,8 @@ def balance_samples(X, y, target_count=1500):
         if cur == 0: continue
 
         if cur > target_count:
-            # Undersampling: prendine solo target_count
             new_idx = np.random.choice(idx, target_count, replace=False)
         else:
-            # Oversampling: duplica finché non arrivi a target_count
             new_idx = np.random.choice(idx, target_count, replace=True)
 
         X_balanced.append(X[new_idx])
@@ -161,7 +145,6 @@ def balance_samples(X, y, target_count=1500):
         X_final = np.vstack(X_balanced)
         y_final = np.hstack(y_balanced)
     else:
-        # Gestione matrici sparse
         X_final = sparse.vstack(X_balanced)
         y_final = np.hstack(y_balanced)
 

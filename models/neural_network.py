@@ -37,4 +37,4 @@ class NeuralNetwork(nn.Module):
     def forward(self, x):
         x = self.feature_extractor(x)
         x = self.classifier(x)
-        return x  # Ritorna sempre logits
+        return x  

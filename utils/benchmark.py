@@ -5,22 +5,7 @@ import math
 
 
 def create_benchmark(train_ds, test_ds, mode="single", param=None):
-    """
-    Create CIL benchmark with 5 possible modes:
-    
-    Modes:
-        - "single": all classes in one exp
-        - "two": split into 2 experiences (balanced)
-        - "three": split into 3 experiences (balanced-ish)
-        - "fixed": fixed number of classes per exp (param required)
-        - "incremental": experiences grow: param, param+1, rest
 
-    Args:
-        train_ds, test_ds : dict {"X": Tensor, "y": Tensor}
-        mode : str
-        param : int (required for "fixed" and "incremental")
-    """
-    
     train_dataset = TensorDataset(train_ds["X"], train_ds["y"])
     test_dataset = TensorDataset(test_ds["X"], test_ds["y"])
 
@@ -30,15 +15,9 @@ def create_benchmark(train_ds, test_ds, mode="single", param=None):
     n_classes = len(unique_classes)
     print(f"Total number of classes: {n_classes}")
 
-    # -------------------------------------------------------
-    # MODE 1: all classes in 1 experience
-    # -------------------------------------------------------
     if mode == "single":
         class_splits = [unique_classes]
 
-    # -------------------------------------------------------
-    # MODE 2: split into 2 experiences (balanced)
-    # -------------------------------------------------------
     elif mode == "two":
         split_sizes = [n_classes // 2, n_classes - n_classes // 2]
         idx = 0
@@ -47,9 +26,6 @@ def create_benchmark(train_ds, test_ds, mode="single", param=None):
             class_splits.append(unique_classes[idx:idx+size])
             idx += size
 
-    # -------------------------------------------------------
-    # MODE 3: split into 3 experiences (balanced-ish)
-    # -------------------------------------------------------
     elif mode == "three":
         base = n_classes // 3
         split_sizes = [base, base, n_classes - 2 * base]
@@ -59,10 +35,6 @@ def create_benchmark(train_ds, test_ds, mode="single", param=None):
             class_splits.append(unique_classes[idx:idx+size])
             idx += size
 
-    # -------------------------------------------------------
-    # MODE 4: fixed-size increments (requires param)
-    # Example: 10 classes, param=2 => 2+2+2+2+2
-    # -------------------------------------------------------
     elif mode == "fixed":
         if param is None:
             raise ValueError("mode 'fixed' requires param")
@@ -74,10 +46,6 @@ def create_benchmark(train_ds, test_ds, mode="single", param=None):
             class_splits.append(unique_classes[idx:idx+param])
             idx += param
 
-    # -------------------------------------------------------
-    # MODE 5: incremental size increments (requires param)
-    # Example: 10 classes, param=2 => 2 + 3 + 5
-    # -------------------------------------------------------
     elif mode == "incremental":
         if param is None:
             raise ValueError("mode 'incremental' requires param")
@@ -102,7 +70,6 @@ def create_benchmark(train_ds, test_ds, mode="single", param=None):
     per_exp_classes = {i: len(exp) for i, exp in enumerate(class_splits)}
     n_experiences = len(class_splits)
 
-    # --------- Create Avalanche benchmark ----------
     return nc_benchmark(
         train_dataset=train_dataset,
         test_dataset=test_dataset,
