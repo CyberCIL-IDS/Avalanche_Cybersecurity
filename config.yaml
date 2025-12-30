@@ -1,5 +1,5 @@
 dataset:
-  mode: "CICIDS_2017"   #CICIDS_2017, UNSW_NB15
+  mode: "UNSW_NB15"   #CICIDS_2017, UNSW_NB15
   train_csv: "datasets/UNSW_NB15/UNSW_NB15_training-set.csv"          
   test_csv: "datasets/UNSW_NB15/UNSW_NB15_testing-set.csv"
 
@@ -7,14 +7,14 @@ optuna:
   n_trials: 20    #10-15 for test, 100+ for real results
   #output_path: "optuna_best_params.json" ##### we take that from args
   all: true  #with true optuna iterate for each mode and each parameter, if false optuna take the benchmark settings 
-  modes: ["fixed", "incremental"]
+  modes: [half] # ["fixed", "incremental", half]
   strategies: ["ICaRL", "MER", "DER"]
-  params: [1, 2]
+  params: [1, 2] 
   pruner: "HyperbandPruner"   #MedianPruner, HyperbandPruner
 
 benchmark:
-  mode: "incremental"     #["fixed", "incremental"] 
-  param: 2         #single mode: fixed and param = 1 
+  mode: "incremental"     #["fixed", "incremental, half"] 
+  param: 2         #single mode: fixed and param = 1 , with half param is ignored
   strategy: "ICaRL"         #ICaRL, MER, DER
   best_params_path: "utils/optuna/optuna_best_params2.json"
 

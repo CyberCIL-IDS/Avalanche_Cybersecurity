@@ -15,27 +15,7 @@ def create_benchmark(train_ds, test_ds, mode="single", param=None):
     n_classes = len(unique_classes)
     print(f"Total number of classes: {n_classes}")
 
-    if mode == "single":
-        class_splits = [unique_classes]
-
-    elif mode == "two":
-        split_sizes = [n_classes // 2, n_classes - n_classes // 2]
-        idx = 0
-        class_splits = []
-        for size in split_sizes:
-            class_splits.append(unique_classes[idx:idx+size])
-            idx += size
-
-    elif mode == "three":
-        base = n_classes // 3
-        split_sizes = [base, base, n_classes - 2 * base]
-        idx = 0
-        class_splits = []
-        for size in split_sizes:
-            class_splits.append(unique_classes[idx:idx+size])
-            idx += size
-
-    elif mode == "fixed":
+    if mode == "fixed":
         if param is None:
             raise ValueError("mode 'fixed' requires param")
 
@@ -45,24 +25,31 @@ def create_benchmark(train_ds, test_ds, mode="single", param=None):
         for _ in range(n_exp):
             class_splits.append(unique_classes[idx:idx+param])
             idx += param
-
     elif mode == "incremental":
         if param is None:
             raise ValueError("mode 'incremental' requires param")
 
         first = param                 # e.g., 2
         second = param + 1            # e.g., 3
-        third = n_classes - (first + second)
+        third = n_classes - (second + 2)
 
         if third < 0:
             raise ValueError("param too large: incremental split impossible")
 
-        split_sizes = [first, second, third]
+        if n_classes > 10:
+            fourth = n_classes - (third + 3)
+            split_sizes = [first, second, third, fourth]
+        else:
+            split_sizes = [first, second, third]
+
         idx = 0
         class_splits = []
         for size in split_sizes:
             class_splits.append(unique_classes[idx:idx+size])
             idx += size
+    elif mode == "half":
+        half = n_classes // 2 # integer division
+        class_splits = [unique_classes[:half], unique_classes[half:]]
 
     else:
         raise ValueError("Unsupported mode")

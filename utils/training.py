@@ -82,7 +82,7 @@ def run_prediction_on_tensors(model, test_ds, label_encoder, strategy, mode, par
         X_test = test_ds["X"]
         y_true = test_ds["y"]
         if isinstance(y_true, torch.Tensor):
-             y_true = y_true.cpu().numpy()
+            y_true = y_true.cpu().numpy()
     else:
         X_test = test_ds.tensors[0]
         y_true = test_ds.tensors[1].cpu().numpy()

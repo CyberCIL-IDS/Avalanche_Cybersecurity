@@ -23,11 +23,9 @@ def main():
 
     all_results = parse_json(best_params_path) 
 
-
     if not cfg["all_mode_training"].get("enable", False):
-
         strategy = cfg["benchmark"]["strategy"]
-        mode = cfg["benchmark"].get("mode", "single")
+        mode = cfg["benchmark"].get("mode", None)
         param = cfg["benchmark"].get("param", None)
         
         print("=== CREATING BENCHMARK ===")
@@ -73,7 +71,7 @@ def main():
 
         print("=== PLOTTING RESULTS ===")
         plot_metrics(experiences, metrics, dataset, strategy, mode, param)
-    else:
+    else: ## all mode training loop
         best_params = None
         for entry in all_results:
             meta = entry["meta"]
@@ -82,6 +80,10 @@ def main():
             mode = meta["mode"]
             param = meta["param"]
             best_params = entry["best_hyperparameters"]
+
+            # skip incremental with param 1
+            if mode == "incremental" and param == 1:
+                continue
 
             print("=== CREATING BENCHMARK ===")
             benchmark = create_benchmark(train_ds, test_ds, mode, param)
