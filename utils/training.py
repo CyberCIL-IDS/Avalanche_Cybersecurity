@@ -65,7 +65,10 @@ def run_internal_prediction(model, df_test, preprocessor, label_encoder, cfg, st
             y_true=y_true, 
             y_pred=preds, 
             classes=label_encoder.classes_, 
-            filename=cm_filename
+            filename=cm_filename,
+            strategy=strategy,
+            mode=mode,
+            param=param
         )
         print(f"[PREDICT] Matrice di confusione salvata in: {cm_filename}")
         
@@ -112,7 +115,7 @@ def run_prediction_on_tensors(model, test_ds, label_encoder, strategy, mode, par
     os.makedirs(plot_dir, exist_ok=True)
     cm_filename = f"utils/plot_{dataset}/confusion_matrix_{strategy}_{mode}_{param}.png"
     
-    plot_confusion_matrix(y_true, preds, label_encoder.classes_, cm_filename)
+    plot_confusion_matrix(y_true, preds, label_encoder.classes_, cm_filename, strategy, mode, param)
     print(f"[PREDICT] Matrice salvata: {cm_filename}")
 
 
