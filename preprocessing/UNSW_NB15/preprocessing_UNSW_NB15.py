@@ -11,14 +11,23 @@ import numpy as np
 from scipy import sparse
 import torch
 
-def balance_samples(X, y, target_count=1500):
+def balance_samples(X, y, target_count=5000, majority_multiplier=4):
     """
-    Bilanciamento Ibrido:
-    - Le classi > target_count vengono tagliate (Undersampling)
-    - Le classi < target_count vengono duplicate (Oversampling)
+    Bilanciamento Ibrido Intelligente:
+    - Identifica la classe maggioritaria (es. Normal/Benign).
+    - Per la classe maggioritaria: Usa un target più alto (target_count * majority_multiplier).
+    - Per le altre classi: Usa target_count standard.
+    
+    Questo preserva la varianza della classe "Normal" evitando che collassi.
     """
     classes, counts = np.unique(y, return_counts=True)
+    
+    # 1. Identifica automaticamente la classe più numerosa (es. Normal)
+    major_class_idx = np.argmax(counts)
+    major_class = classes[major_class_idx]
+    
     print(f"DEBUG: Distribuzione originale: {dict(zip(classes, counts))}")
+    print(f"DEBUG: Classe maggioritaria rilevata: {major_class} (moltiplicatore x{majority_multiplier})")
     
     X_balanced = []
     y_balanced = []
@@ -27,24 +36,41 @@ def balance_samples(X, y, target_count=1500):
         idx = np.where(y == c)[0]
         current_count = len(idx)
         
-        if current_count > target_count:
-            random_idx = np.random.choice(idx, target_count, replace=False)
+        # 2. Logica differenziata per il limite di campioni
+        if c == major_class:
+            # Per la classe "Normal", teniamo molti più campioni (es. 20.000 invece di 5.000)
+            current_target = target_count * majority_multiplier
         else:
-            random_idx = np.random.choice(idx, target_count, replace=True)
+            # Per gli attacchi, usiamo il target standard (es. 5.000)
+            current_target = target_count
+        
+        # 3. Campionamento (Undersampling o Oversampling)
+        if current_count > current_target:
+            # Se ne abbiamo troppi, ne prendiamo un sottoinsieme (Undersampling)
+            random_idx = np.random.choice(idx, current_target, replace=False)
+        else:
+            # Se ne abbiamo pochi, li duplichiamo (Oversampling)
+            random_idx = np.random.choice(idx, current_target, replace=True)
             
         X_balanced.append(X[random_idx])
         y_balanced.append(y[random_idx])
 
     # Ricostruzione dataset
     if isinstance(X, np.ndarray) or isinstance(X, torch.Tensor):
-        X_final = np.vstack(X_balanced)
-        y_final = np.hstack(y_balanced)
+        # Se è tensore, vstack di numpy potrebbe richiedere conversione, 
+        # ma spesso funziona se il tensore è su CPU. Per sicurezza:
+        if isinstance(X_balanced[0], torch.Tensor):
+            X_final = torch.vstack(X_balanced) # Usa torch.vstack per i tensori
+            y_final = torch.hstack(y_balanced)
+        else:
+            X_final = np.vstack(X_balanced)
+            y_final = np.hstack(y_balanced)
     else:
         # Gestione matrici sparse
         X_final = sparse.vstack(X_balanced)
         y_final = np.hstack(y_balanced)
 
-    print(f"DEBUG: Dataset bilanciato a {target_count} campioni per classe.")
+    print(f"DEBUG: Dataset bilanciato. Normal: ~{target_count * majority_multiplier}, Attacchi: ~{target_count}")
     return X_final, y_final
 
 def prepare_UNSW_NB15(cfg):

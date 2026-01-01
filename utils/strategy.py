@@ -58,7 +58,7 @@ def getStrategy(strategy_type, model, optimizer, current_epochs, eval_plugin, de
             eval_mb_size=HIGH_EVAL_BATCH_SIZE,
             evaluator=eval_plugin,
             device=device,
-            memory_size=5000,    
+            memory_size=20000,    
             buffer_transform=None,
             fixed_memory=True,
             plugins=plugins_list

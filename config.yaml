@@ -1,5 +1,5 @@
 dataset:
-  mode: "UNSW_NB15"   #CICIDS_2017, UNSW_NB15
+  mode: "CICIDS_2017"   #CICIDS_2017, UNSW_NB15
   train_csv: "datasets/UNSW_NB15/UNSW_NB15_training-set.csv"          
   test_csv: "datasets/UNSW_NB15/UNSW_NB15_testing-set.csv"
 
@@ -13,9 +13,9 @@ optuna:
   pruner: "HyperbandPruner"   #MedianPruner, HyperbandPruner
 
 benchmark:
-  mode: "incremental"     #["fixed", "incremental, half"] 
-  param: 2         #single mode: fixed and param = 1 , with half param is ignored
-  strategy: "ICaRL"         #ICaRL, MER, DER
+  mode: "half"     #["fixed", "incremental, half"] 
+  param: 1        #single mode: fixed and param = 1 , with half param is ignored
+  strategy: "MER"         #DER, MER, DER
   best_params_path: "utils/optuna/optuna_best_params2.json"
 
 all_mode_training:

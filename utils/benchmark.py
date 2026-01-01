@@ -31,15 +31,13 @@ def create_benchmark(train_ds, test_ds, mode="single", param=None):
 
         first = param                 # e.g., 2
         second = param + 1            # e.g., 3
-        third = n_classes - (second + 2)
-
-        if third < 0:
-            raise ValueError("param too large: incremental split impossible")
 
         if n_classes > 10:
+            third = (second + 2)
             fourth = n_classes - (third + 3)
             split_sizes = [first, second, third, fourth]
         else:
+            third = n_classes - (second + 2)
             split_sizes = [first, second, third]
 
         idx = 0

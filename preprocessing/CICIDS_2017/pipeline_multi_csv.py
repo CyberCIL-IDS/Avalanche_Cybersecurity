@@ -50,7 +50,7 @@ def prepare_dataset_multi_csv(
     output_label_encoder_path,
     balance_classes=True,
     target_count=5000,
-    sample_fraction=0.2  # usa il 20% dei dati 
+    sample_fraction=1  # usa il 20% dei dati 
 ):
     
     all_files = train_files + test_files

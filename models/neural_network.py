@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.nn.functional as F 
 
 class NeuralNetwork(nn.Module):
     def __init__(
@@ -31,10 +32,15 @@ class NeuralNetwork(nn.Module):
             nn.Dropout(dropout)
         )
 
-        
-        self.classifier = nn.Linear(h4, num_classes)
+        self.classifier = nn.Linear(h4, num_classes, bias=False)
 
     def forward(self, x):
         x = self.feature_extractor(x)
+        x = F.normalize(x, p=2, dim=1)
         x = self.classifier(x)
-        return x  
+        return x
+
+    def extract_features(self, x):
+        x = self.feature_extractor(x)
+        x = F.normalize(x, p=2, dim=1)
+        return x

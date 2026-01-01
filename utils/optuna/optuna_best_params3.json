@@ -1,19 +1,70 @@
 [
     {
-        "mode": "fixed",
+        "mode": "half",
         "param": 1,
         "strategy": "ICaRL",
-        "trial": 20,
+        "trial": 17,
         "best_value": {
-            "lr": 0.030334125654742004,
-            "batch_size": 4096,
-            "h1": 438,
-            "h2": 132,
-            "h3": 13,
-            "h4": 128,
-            "dropout": 0.15205292454014946,
-            "weight_decay": 8.838220108913106e-05
+            "lr": 0.056983159971171614,
+            "batch_size": 1024,
+            "h1": 188,
+            "h2": 240,
+            "h3": 76,
+            "h4": 25,
+            "dropout": 0.06951085881537528,
+            "weight_decay": 0.0003043518422773417
         },
-        "best_params": 0.48232764903075354
+        "best_params": 0.6756182286352815
+    },
+    {
+        "mode": "half",
+        "param": 1,
+        "strategy": "MER",
+        "trial": 13,
+        "best_value": {
+            "lr": 0.002956394612464905,
+            "batch_size": 128,
+            "h1": 421,
+            "h2": 209,
+            "h3": 94,
+            "h4": 40,
+            "dropout": 0.11841658505190433,
+            "weight_decay": 0.00020259752891367127
+        },
+        "best_params": 0.7144731088762571
+    },
+    {
+        "mode": "half",
+        "param": 1,
+        "strategy": "DER",
+        "trial": 18,
+        "best_value": {
+            "lr": 0.0031933714438743873,
+            "batch_size": 2048,
+            "h1": 299,
+            "h2": 160,
+            "h3": 82,
+            "h4": 41,
+            "dropout": 0.003997844152776972,
+            "weight_decay": 8.205901161775493e-05
+        },
+        "best_params": 0.6975052227566438
+    },
+    {
+        "mode": "half",
+        "param": 2,
+        "strategy": "ICaRL",
+        "trial": 4,
+        "best_value": {
+            "lr": 0.08753434078919728,
+            "batch_size": 1024,
+            "h1": 245,
+            "h2": 229,
+            "h3": 35,
+            "h4": 38,
+            "dropout": 0.15981892424661123,
+            "weight_decay": 0.0006625557176202156
+        },
+        "best_params": 0.6638245153767672
     }
 ]
