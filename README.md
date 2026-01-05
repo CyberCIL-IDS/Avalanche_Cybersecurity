@@ -2,7 +2,7 @@
 
 Questo progetto implementa un sistema di **Intrusion Detection System (IDS)** basato su tecniche di **Continual Learning** utilizzando la libreria [Avalanche](https://avalanche.continualai.org/). Il sistema è progettato per adattarsi a nuovi tipi di attacchi nel tempo senza dimenticare le conoscenze apprese in precedenza (prevenzione del *Catastrophic Forgetting*).
 
-## Funzionalità Principali
+## 🚀 Funzionalità Principali
 
 * **Dataset Supportati**:
     * **UNSW-NB15**: Dataset per la rilevazione di intrusioni di rete.
@@ -18,7 +18,7 @@ Questo progetto implementa un sistema di **Intrusion Detection System (IDS)** ba
 * **Ottimizzazione Automatica**: Integrazione con **Optuna** per la ricerca degli iperparametri ottimali.
 * **Preprocessing Avanzato**: Pipeline automatizzate per pulizia dati, feature engineering e bilanciamento delle classi.
 
-## Struttura del Progetto
+## 📂 Struttura del Progetto
 
 ```text
 .
@@ -36,7 +36,7 @@ Questo progetto implementa un sistema di **Intrusion Detection System (IDS)** ba
 └── requirements.txt   # Dipendenze Python
 ```
 
-## Installazione
+## 🛠️ Installazione
 
 Assicurati di avere Python installato (versione consigliata >= 3.10). Installa le dipendenze necessarie:
 
@@ -46,7 +46,7 @@ pip install -r requirements.txt
 
 *Nota: Il progetto richiede PyTorch con supporto CUDA se si desidera utilizzare l'accelerazione GPU.*
 
-## Configurazione Dettagliata
+## ⚙️ Configurazione Dettagliata
 
 Tutta la logica di esecuzione è centralizzata nel file `config.yaml`. Di seguito viene spiegato come configurare le sezioni critiche per ottenere i migliori risultati.
 
@@ -92,7 +92,7 @@ Se vuoi ottimizzare e poi addestrare un modello **ICaRL** in modalità **Increme
 6. Aggiorna `benchmark.best_params_path` con il file JSON appena creato.
 7. Esegui `python main.py`.
 
-## Utilizzo
+## ▶️ Utilizzo
 
 Il flusso di lavoro tipico prevede tre fasi: Ottimizzazione, Addestramento e Predizione.
 
@@ -123,13 +123,13 @@ python predict.py
 * Assicurati che in `config.yaml` siano impostati correttamente `strategy`, `mode` e `param` corrispondenti al checkpoint che vuoi caricare.
 * I risultati verranno salvati in `datasets/predictions.csv`.
 
-## Output e Risultati
+## 📊 Output e Risultati
 
 * **Modelli**: Salvati come `model_checkpoint_{strategy}_{mode}_{param}.pth`.
 * **Preprocessing**: Gli oggetti `preprocessor` e `label_encoder` vengono salvati come `.pkl` per garantire la coerenza tra training e inferenza.
 * **Grafici**: Vengono generate matrici di confusione e grafici dell'andamento dell'accuratezza durante le fasi incrementali.
 
-## Requisiti
+## 📝 Requisiti
 Le principali librerie utilizzate sono:
 * `torch` >= 2.1.0
 * `avalanche-lib` >= 0.6
