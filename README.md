@@ -1,4 +1,5 @@
 # 🇮🇹 Avalanche Cybersecurity - IDS Continual Learning
+[🇬🇧 **Read this in English**](README_ENG.md)
 
 Questo progetto implementa un sistema di **Intrusion Detection System (IDS)** basato su tecniche di **Continual Learning** utilizzando la libreria [Avalanche](https://avalanche.continualai.org/). Il sistema è progettato per adattarsi a nuovi tipi di attacchi nel tempo senza dimenticare le conoscenze apprese in precedenza (prevenzione del *Catastrophic Forgetting*).
 
