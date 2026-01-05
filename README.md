@@ -74,8 +74,8 @@ Questa sezione controlla lo script di ottimizzazione (`optimization.py`). È fon
 * `pruner`: Algoritmo per interrompere i trial non promettenti (es. `"HyperbandPruner"` o `"MedianPruner"`).
 * `all` **(IMPORTANTE)**: Determina l'ambito della ricerca.
     * `true`: Optuna **ignora** le impostazioni singole della sezione `benchmark` ed esegue un ciclo nidificato su TUTTE le liste definite sotto `optuna`.
-        * Esempio: Se `modes: ["fixed", "incremental"]` e `strategies: ["DER", "MER"]`, Optuna cercherà i migliori parametri per: (fixed+DER), (fixed+MER), (incremental+DER), ecc.
-    * `false`: Optuna ottimizzerà **solamente** la specifica configurazione (mode/strategy/param) attualmente attiva nella sezione `benchmark`.
+        * Esempio: Se `modes: ["fixed", "incremental"]` e `strategies: ["DER", "MER"]`, Optuna cercherà i migliori parametri per: `(fixed+DER)`, `(fixed+MER)`, `(incremental+DER)`, ecc.
+    * `false`: Optuna ottimizzerà **solamente** la specifica configurazione (`mode/strategy/param`) attualmente attiva nella sezione `benchmark`.
 * **Liste di iterazione (usate solo se `all: true`)**:
     * `modes`: Lista delle modalità da testare (es. `["half", "incremental"]`).
     * `strategies`: Lista delle strategie (es. `["ICaRL", "MER"]`).
@@ -83,13 +83,14 @@ Questa sezione controlla lo script di ottimizzazione (`optimization.py`). È fon
 
 ### 3. Esempio di Workflow `config.yaml`
 Se vuoi ottimizzare e poi addestrare un modello **ICaRL** in modalità **Incremental** con **5 step**:
-    1. Imposta `optuna.all: false`.
-    2. Imposta `benchmark.strategy: "ICaRL"`.
-    3. Imposta `benchmark.mode: "incremental"`.
-    4. Imposta `benchmark.param: 5`.
-    5. Esegui `python optimization.py`.
-    6. Aggiorna `benchmark.best_params_path` con il file JSON appena creato.
-    7. Esegui `python main.py`.
+
+1. Imposta `optuna.all: false`.
+2. Imposta `benchmark.strategy: "ICaRL"`.
+3. Imposta `benchmark.mode: "incremental"`.
+4. Imposta `benchmark.param: 5`.
+5. Esegui `python optimization.py`.
+6. Aggiorna `benchmark.best_params_path` con il file JSON appena creato.
+7. Esegui `python main.py`.
 
 ## Utilizzo
 
